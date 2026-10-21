@@ -36,65 +36,65 @@ Every data function below takes the user id from `requireUser()` and is tested w
 
 ## 4. Wallets
 
-- [ ] 4.1 Implement the wallet data layer with a calculated balance query scoped to the signed-in user, and verify unit tests for expense, income, transfer, adjustment, loan and deletion effects, and that another user's entries never change a balance
-- [ ] 4.2 Build the wallets page with create (presets or custom name, opening balance), rename, edit opening balance, archive (blocked unless balance is zero) and restore, and verify each `wallets` scenario including the duplicate-name rejection within one user and the same name in two users, and verify in a real browser with two accounts that each sees only their own wallets
-- [ ] 4.3 Confirm no form asks for a phone number, account number or credential, and verify by reading the wallet form fields
+- [x] 4.1 Implement the wallet data layer with a calculated balance query scoped to the signed-in user, and verify unit tests for expense, income, transfer, adjustment, loan and deletion effects, and that another user's entries never change a balance
+- [x] 4.2 Build the wallets page with create (presets or custom name, opening balance), rename, edit opening balance, archive (blocked unless balance is zero) and restore, and verify each `wallets` scenario including the duplicate-name rejection within one user and the same name in two users, and verify in a real browser with two accounts that each sees only their own wallets
+- [x] 4.3 Confirm no form asks for a phone number, account number or credential, and verify by reading the wallet form fields
 
 ## 5. Categories
 
-- [ ] 5.1 Implement the category data layer and page with add, rename, archive and restore, and verify duplicates are rejected ignoring case within one user and that one user's changes never show for another
-- [ ] 5.2 Hide the reserved loan category from expense forms and block its archiving, and verify both in the UI
+- [x] 5.1 Implement the category data layer and page with add, rename, archive and restore, and verify duplicates are rejected ignoring case within one user and that one user's changes never show for another
+- [x] 5.2 Hide the reserved loan category from expense forms and block its archiving, and verify both in the UI
 
 ## 6. Transactions
 
-- [ ] 6.1 Implement Server Actions for expense, income, transfer and adjustment with schema validation (amount above zero, two decimals, no future date, different wallets for transfer, wallet and category owned by the user), and verify unit tests for each rejection
-- [ ] 6.2 Build the add-entry forms where the wallet is chosen on every entry, and verify an expense from bKash lowers only the bKash balance
-- [ ] 6.3 Add the low-balance warning with a confirm step, and verify confirming saves a negative balance and cancelling saves nothing
-- [ ] 6.4 Build the entry list for a month with newest-first order and wallet and category filters, and verify filters against seeded data and that only the user's own entries appear
-- [ ] 6.5 Add edit and delete for entries, and verify balances and totals update after each
+- [x] 6.1 Implement Server Actions for expense, income, transfer and adjustment with schema validation (amount above zero, two decimals, no future date, different wallets for transfer, wallet and category owned by the user), and verify unit tests for each rejection
+- [x] 6.2 Build the add-entry forms where the wallet is chosen on every entry, and verify an expense from bKash lowers only the bKash balance
+- [x] 6.3 Add the low-balance warning with a confirm step, and verify confirming saves a negative balance and cancelling saves nothing
+- [x] 6.4 Build the entry list for a month with newest-first order and wallet and category filters, and verify filters against seeded data and that only the user's own entries appear
+- [x] 6.5 Add edit and delete for entries, and verify balances and totals update after each
 
 ## 7. Loans
 
-- [ ] 7.1 Implement loan creation for "I borrowed" and "I lent", writing the principal entry in one transaction, and verify wallet effects and that spending is unchanged
-- [ ] 7.2 Implement repayments with principal, optional interest or fee, and overpayment rejection, writing both rows in one transaction, and verify the borrowed-fee and lent-interest scenarios
-- [ ] 7.3 Build the loans page with original, repaid and outstanding amounts and open or closed status, and verify a final repayment closes the loan and deleting it reopens the loan
-- [ ] 7.4 Add loan edit (counterparty, due date, note) and delete with confirmation, and verify delete removes repayments and their wallet and spending effects
-- [ ] 7.5 Confirm loan forms hold only a name, never a phone or account number, and verify by reading the form fields
+- [x] 7.1 Implement loan creation for "I borrowed" and "I lent", writing the principal entry in one transaction, and verify wallet effects and that spending is unchanged
+- [x] 7.2 Implement repayments with principal, optional interest or fee, and overpayment rejection, writing both rows in one transaction, and verify the borrowed-fee and lent-interest scenarios
+- [x] 7.3 Build the loans page with original, repaid and outstanding amounts and open or closed status, and verify a final repayment closes the loan and deleting it reopens the loan
+- [x] 7.4 Add loan edit (counterparty, due date, note) and delete with confirmation, and verify delete removes repayments and their wallet and spending effects
+- [x] 7.5 Confirm loan forms hold only a name, never a phone or account number, and verify by reading the form fields
 
 ## Phase 4: Reports and alerts
 
 ## 8. Settings and reports
 
-- [ ] 8.1 Build the settings page for each user's month start day (1 to 28) and verify 31 is rejected, changing the day regroups reports without altering entries, and one user's day does not change another's
-- [ ] 8.2 Implement the monthly report queries (spending total, by category with shares, by wallet, previous-month comparison, six-month trend) for the signed-in user, and verify unit tests against the `monthly-reports` scenarios, including "only expenses counted" and that another user's entries are excluded
-- [ ] 8.3 Build the dashboard (wallet cards, total balance, owed and owed-to-you, net position, month spending) and verify the 48,200 / 40,000 / 8,200 example
+- [x] 8.1 Build the settings page for each user's month start day (1 to 28) and verify 31 is rejected, changing the day regroups reports without altering entries, and one user's day does not change another's
+- [x] 8.2 Implement the monthly report queries (spending total, by category with shares, by wallet, previous-month comparison, six-month trend) for the signed-in user, and verify unit tests against the `monthly-reports` scenarios, including "only expenses counted" and that another user's entries are excluded
+- [x] 8.3 Build the dashboard (wallet cards, total balance, owed and owed-to-you, net position, month spending) and verify the 48,200 / 40,000 / 8,200 example
 - [ ] 8.4 Build the report page with a month picker, theme-token charts and the empty state, and verify an empty month shows no errors and no misleading percentages
 
 ## 9. Alerts
 
-- [ ] 9.1 Add the alerts toggle and monthly limit to each user's settings, and verify enabling without a limit is refused
-- [ ] 9.2 Compute and render limit alerts at 80% and above 100% from the user's total spending across all their wallets, and verify the bKash plus Bank example exceeds a 30,000 limit
-- [ ] 9.3 Compute and render loan due alerts (overdue or due within 7 days, open loans only, different wording for borrowed and lent), and verify a closed loan shows none
-- [ ] 9.4 Verify no alert shows while alerts are off, that deleting an expense clears an alert, that a new month starts clean, and that one user's alert settings never affect another user
+- [x] 9.1 Add the alerts toggle and monthly limit to each user's settings, and verify enabling without a limit is refused
+- [x] 9.2 Compute and render limit alerts at 80% and above 100% from the user's total spending across all their wallets, and verify the bKash plus Bank example exceeds a 30,000 limit
+- [x] 9.3 Compute and render loan due alerts (overdue or due within 7 days, open loans only, different wording for borrowed and lent), and verify a closed loan shows none
+- [x] 9.4 Verify no alert shows while alerts are off, that deleting an expense clears an alert, that a new month starts clean, and that one user's alert settings never affect another user
 
 ## Phase 5: AI advice
 
 ## 10. Gemini advice
 
-- [ ] 10.1 Build the aggregate payload builder (category totals for this and the previous month, total, limit, total owed, loan fees) from the signed-in user's data, and verify a test that notes, wallet names, counterparty names, emails and user ids never appear in the payload
-- [ ] 10.2 Implement the Gemini call with structured JSON output and the model name from env, and verify against the live free tier with a seeded month
-- [ ] 10.3 Validate the response and drop suggestions whose saving exceeds the category's spend, and verify a unit test for the 5,000 over 3,000 case
-- [ ] 10.4 Save advice per user and month with an input hash, reuse it on return, and skip the call when a refresh finds the same hash, and verify no request is made in those two cases and that users only see their own advice
-- [ ] 10.5 Handle rate limit, timeout and invalid responses with a clear message that keeps old advice, and verify by forcing each failure
-- [ ] 10.6 Build the advice UI with a refresh button, creation time and an empty-month message, and verify an empty month makes no request
-- [ ] 10.7 Verify the Gemini key is absent from the built client bundle by searching the `.next` output
-- [ ] 10.8 Limit each user to 5 requests per day in Bangladesh time, counted before the call and returned when the call fails, and verify the sixth request makes no call, reused advice does not count, a failed call does not use up the allowance, and another user is unaffected
+- [x] 10.1 Build the aggregate payload builder (category totals for this and the previous month, total, limit, total owed, loan fees) from the signed-in user's data, and verify a test that notes, wallet names, counterparty names, emails and user ids never appear in the payload
+- [x] 10.2 Implement the Gemini call with structured JSON output and the model name from env, and verify against the live free tier with a seeded month
+- [x] 10.3 Validate the response and drop suggestions whose saving exceeds the category's spend, and verify a unit test for the 5,000 over 3,000 case
+- [x] 10.4 Save advice per user and month with an input hash, reuse it on return, and skip the call when a refresh finds the same hash, and verify no request is made in those two cases and that users only see their own advice
+- [x] 10.5 Handle rate limit, timeout and invalid responses with a clear message that keeps old advice, and verify by forcing each failure
+- [x] 10.6 Build the advice UI with a refresh button, creation time and an empty-month message, and verify an empty month makes no request
+- [x] 10.7 Verify the Gemini key is absent from the built client bundle by searching the `.next` output
+- [x] 10.8 Limit each user to 5 requests per day in Bangladesh time, counted before the call and returned when the call fails, and verify the sixth request makes no call, reused advice does not count, a failed call does not use up the allowance, and another user is unaffected
 
 ## Phase 6: Release
 
 ## 11. Quality and deploy
 
-- [ ] 11.1 Run `npm run lint`, type checks and the test suite, and verify all pass
+- [x] 11.1 Run `npm run lint`, type checks and the test suite, and verify all pass
 - [ ] 11.2 Walk through every spec scenario on a phone-sized screen with two accounts, and verify the list has no failures
-- [ ] 11.3 Confirm there are no emojis or hardcoded colour classes in the source by searching the code
+- [x] 11.3 Confirm there are no emojis or hardcoded colour classes in the source by searching the code
 - [ ] 11.4 Deploy to Vercel with the env values set (including `BETTER_AUTH_URL` and `ALLOWED_EMAILS`) and migrations run, and verify on the live URL that two accounts can register, that each sees only their own data, that sign-in works after a reload, and that advice works

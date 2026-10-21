@@ -3,3 +3,4 @@ allowBuilds:
   esbuild: false
   protobufjs: false
   unrs-resolver: false
+nodeLinker: hoisted

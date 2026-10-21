@@ -1,15 +1,21 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import DashboardContent from "./dashboard-content";
+
+export const metadata: Metadata = {
+  title: "Home",
+};
+
 export default function Home() {
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 text-card-foreground">
-        <h1 className="text-xl font-semibold tracking-tight">Expense Tracker</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Dashboard coming soon.
-        </p>
-        <span className="mt-4 inline-block rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">
-          Dark theme active
-        </span>
-      </div>
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-4 md:p-8">
+      <header>
+        <h1 className="text-xl font-semibold tracking-tight">Home</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Where your money stands today.</p>
+      </header>
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
+        <DashboardContent />
+      </Suspense>
     </main>
   );
 }

@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { LogOut, Settings, Wallet } from "lucide-react";
+import AlertBanners from "@/components/app-shell/alert-banners";
 import NavLinks from "@/components/app-shell/nav-links";
 import { signOut } from "@/lib/auth/actions";
 
@@ -56,6 +58,10 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         </header>
 
         <div className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
+          {/* Reads the session, so it sits behind Suspense and never blocks the page. */}
+          <Suspense fallback={null}>
+            <AlertBanners />
+          </Suspense>
           {children}
         </div>
       </div>
