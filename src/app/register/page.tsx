@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { AuthSkeleton } from "@/components/skeleton";
+import LanguageScope from "@/i18n/language-scope";
+import { getTranslator } from "@/i18n/server";
 import AuthShell from "@/components/auth/auth-shell";
 import RedirectIfSignedIn from "@/components/auth/redirect-if-signed-in";
 import RegisterForm from "./register-form";
@@ -10,15 +13,27 @@ export const metadata: Metadata = {
 };
 
 export default function RegisterPage() {
+  // The language comes from a cookie, so the page sits inside this boundary.
+  return (
+    <Suspense fallback={<AuthSkeleton />}>
+      <LanguageScope>
+        <RegisterView />
+      </LanguageScope>
+    </Suspense>
+  );
+}
+
+async function RegisterView() {
+  const { t } = await getTranslator();
   return (
     <AuthShell
-      title="Create your account"
-      subtitle="Your wallets and spending stay private to you."
+      title={t("auth.register.title")}
+      subtitle={t("auth.register.subtitle")}
       footer={
         <>
-          Already have an account?{" "}
+          {t("auth.register.haveAccount")}{" "}
           <Link href="/sign-in" className="font-medium text-primary hover:underline">
-            Sign in
+            {t("auth.register.signInLink")}
           </Link>
         </>
       }

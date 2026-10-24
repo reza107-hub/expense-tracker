@@ -5,6 +5,7 @@ import { Save } from "lucide-react";
 import { updateAlertSettingsAction } from "@/actions/settings";
 import InputField from "@/components/forms/input-field";
 import type { AlertFormState } from "@/lib/settings/validation";
+import { useT } from "@/i18n/client";
 
 const initialState: AlertFormState = { status: "idle" };
 
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function AlertsForm({ alertsEnabled, monthlyLimit }: Props) {
+  const t = useT();
   const [state, formAction, pending] = useActionState(updateAlertSettingsAction, initialState);
   const failed = state.status === "error" ? state : null;
   const enabled = failed?.values.alertsEnabled ?? alertsEnabled;
@@ -26,10 +28,9 @@ export default function AlertsForm({ alertsEnabled, monthlyLimit }: Props) {
       key={failed ? `error-${String(failed.values.alertsEnabled)}` : "ok"}
       className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 text-card-foreground"
     >
-      <h2 className="text-base font-semibold tracking-tight">Spending alerts</h2>
+      <h2 className="text-base font-semibold tracking-tight">{t("settings.alerts.title")}</h2>
       <p className="text-sm text-muted-foreground">
-        Alerts show inside the app only. Nothing is sent by email, SMS or push. They are off until
-        you turn them on.
+        {t("settings.alerts.intro")}
       </p>
 
       <label className="flex items-center gap-3 text-sm font-medium">
@@ -39,22 +40,22 @@ export default function AlertsForm({ alertsEnabled, monthlyLimit }: Props) {
           defaultChecked={enabled}
           className="size-4 accent-primary"
         />
-        Turn alerts on
+        {t("settings.alerts.turnOn")}
       </label>
 
       <InputField
         id="monthly-limit"
         name="monthlyLimit"
-        label="Monthly spending limit (taka)"
+        label={t("settings.alerts.limit")}
         inputMode="decimal"
         defaultValue={failed?.values.monthlyLimit ?? monthlyLimit}
         error={failed?.fieldErrors.monthlyLimit}
-        hint="One limit for all your wallets together. You are warned at 80% and again above 100%. Loan due dates are also shown."
+        hint={t("settings.alerts.limitHint")}
       />
 
       {state.status === "saved" ? (
         <p role="status" className="text-sm text-success">
-          Saved.
+          {t("common.saved")}
         </p>
       ) : null}
       <button
@@ -63,7 +64,7 @@ export default function AlertsForm({ alertsEnabled, monthlyLimit }: Props) {
         className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
       >
         <Save className="size-4" aria-hidden="true" />
-        {pending ? "Saving" : "Save"}
+        {pending ? t("common.saving") : t("common.save")}
       </button>
     </form>
   );

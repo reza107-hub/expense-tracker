@@ -3,9 +3,14 @@ import { listActiveCategories, listArchivedCategories } from "@/data/categories"
 import CategoryActions from "./category-actions";
 import CreateCategoryForm from "./create-category-form";
 import RestoreButton from "./restore-button";
+import { getTranslator } from "@/i18n/server";
 
 export default async function CategoriesContent() {
-  const [active, archived] = await Promise.all([listActiveCategories(), listArchivedCategories()]);
+  const [active, archived, { t }] = await Promise.all([
+    listActiveCategories(),
+    listArchivedCategories(),
+    getTranslator(),
+  ]);
 
   return (
     <>
@@ -13,7 +18,7 @@ export default async function CategoriesContent() {
 
       <section aria-labelledby="active-heading" className="flex flex-col gap-3">
         <h2 id="active-heading" className="text-base font-semibold tracking-tight">
-          Your categories
+          {t("categories.yourCategories")}
         </h2>
         <ul className="flex flex-col gap-3">
           {active.map((category) => (
@@ -25,11 +30,10 @@ export default async function CategoriesContent() {
                 <div className="flex flex-col gap-1">
                   <h3 className="flex items-center gap-2 text-base font-medium">
                     {category.name}
-                    <Lock className="size-4 text-muted-foreground" aria-label="Locked" />
+                    <Lock className="size-4 text-muted-foreground" aria-label={t("categories.locked")} />
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Used only for loan interest and fees. It is not offered when you add an
-                    expense, and it cannot be archived.
+                    {t("categories.reservedNote")}
                   </p>
                 </div>
               ) : (
@@ -46,7 +50,7 @@ export default async function CategoriesContent() {
       {archived.length > 0 ? (
         <section aria-labelledby="archived-heading" className="flex flex-col gap-3">
           <h2 id="archived-heading" className="text-base font-semibold tracking-tight">
-            Archived
+            {t("common.archived")}
           </h2>
           <ul className="flex flex-col gap-3">
             {archived.map((category) => (

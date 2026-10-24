@@ -19,6 +19,7 @@ import {
   type LoanFormState,
   type RepaymentField,
 } from "@/lib/loans/validation";
+import { useT } from "@/i18n/client";
 
 const idleAction: LoanActionState = { status: "idle" };
 
@@ -46,6 +47,7 @@ type Props = {
 
 /** Repay, edit and delete controls for one loan. */
 export default function LoanControls({ loan, wallets, today }: Props) {
+  const t = useT();
   const [mode, setMode] = useState<"view" | "repay" | "edit" | "delete">("view");
   const close = () => setMode("view");
 
@@ -62,16 +64,16 @@ export default function LoanControls({ loan, wallets, today }: Props) {
           {loan.status === "open" ? (
             <button type="button" onClick={() => setMode("repay")} className={quietButton}>
               <HandCoins className="size-4" aria-hidden="true" />
-              {loan.direction === "borrowed" ? "Repay" : "Record repayment"}
+              {loan.direction === "borrowed" ? t("loans.repay") : t("loans.recordRepayment")}
             </button>
           ) : null}
           <button type="button" onClick={() => setMode("edit")} className={quietButton}>
             <Pencil className="size-4" aria-hidden="true" />
-            Edit
+            {t("common.edit")}
           </button>
           <button type="button" onClick={() => setMode("delete")} className={quietButton}>
             <Trash2 className="size-4" aria-hidden="true" />
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       )}
@@ -85,6 +87,7 @@ function RepayForm({
   today,
   onClose,
 }: Props & { onClose: () => void }) {
+  const t = useT();
   const [state, formAction, pending] = useActionState(
     recordRepaymentAction.bind(null, loan.id),
     { status: "idle" } as LoanFormState<RepaymentField>,
@@ -99,15 +102,15 @@ function RepayForm({
   }, [state, onClose]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="panel-enter flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        Outstanding: ৳ {formatTaka(loan.outstanding)}
+        {t("loans.repayForm.outstanding", { amount: formatTaka(loan.outstanding) })}
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <InputField
           id={`repay-${loan.id}-principal`}
           name="principal"
-          label="Principal (taka)"
+          label={t("loans.repayForm.principal")}
           inputMode="decimal"
           required
           defaultValue={values?.principal}
@@ -116,21 +119,19 @@ function RepayForm({
         <InputField
           id={`repay-${loan.id}-interest`}
           name="interest"
-          label={borrowed ? "Interest or fee paid (optional)" : "Interest received (optional)"}
+          label={
+            borrowed ? t("loans.repayForm.feePaid") : t("loans.repayForm.interestReceived")
+          }
           inputMode="decimal"
           defaultValue={values?.interest}
           error={errors.interest}
-          hint={
-            borrowed
-              ? "Counts as spending. It does not reduce what you owe."
-              : "Counts as income. It does not reduce what you are owed."
-          }
+          hint={borrowed ? t("loans.repayForm.feeHint") : t("loans.repayForm.interestHint")}
         />
         <SelectField
           id={`repay-${loan.id}-wallet`}
           name="walletId"
-          label={borrowed ? "Pay from" : "Receive into"}
-          placeholder="Choose a wallet"
+          label={borrowed ? t("entries.field.payFrom") : t("loans.repayForm.receiveInto")}
+          placeholder={t("common.chooseWallet")}
           options={wallets.map((wallet) => ({
             value: wallet.id,
             label: `${wallet.name} (৳ ${formatTaka(wallet.balance)})`,
@@ -142,7 +143,7 @@ function RepayForm({
           id={`repay-${loan.id}-date`}
           name="entryDate"
           type="date"
-          label="Date"
+          label={t("common.date")}
           required
           max={today}
           defaultValue={values?.entryDate ?? today}
@@ -152,7 +153,7 @@ function RepayForm({
       <InputField
         id={`repay-${loan.id}-note`}
         name="note"
-        label="Note (optional)"
+        label={t("common.noteOptional")}
         maxLength={NOTE_MAX}
         defaultValue={values?.note}
         error={errors.note}
@@ -165,11 +166,11 @@ function RepayForm({
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className={primaryButton}>
           <Save className="size-4" aria-hidden="true" />
-          {pending ? "Saving" : "Save repayment"}
+          {pending ? t("common.saving") : t("loans.repayForm.save")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>
           <X className="size-4" aria-hidden="true" />
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     </form>
@@ -177,6 +178,7 @@ function RepayForm({
 }
 
 function EditForm({ loan, onClose }: { loan: Props["loan"]; onClose: () => void }) {
+  const t = useT();
   const [state, formAction, pending] = useActionState(
     updateLoanAction.bind(null, loan.id),
     { status: "idle" } as LoanFormState<LoanEditField>,
@@ -189,12 +191,12 @@ function EditForm({ loan, onClose }: { loan: Props["loan"]; onClose: () => void 
   }, [state, onClose]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="panel-enter flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <InputField
           id={`loan-${loan.id}-counterparty`}
           name="counterparty"
-          label="Who with"
+          label={t("loans.add.whoWith")}
           required
           maxLength={COUNTERPARTY_MAX}
           defaultValue={failed?.values.counterparty ?? loan.counterparty}
@@ -204,7 +206,7 @@ function EditForm({ loan, onClose }: { loan: Props["loan"]; onClose: () => void 
           id={`loan-${loan.id}-due`}
           name="dueDate"
           type="date"
-          label="Due date (optional)"
+          label={t("common.dueDateOptional")}
           defaultValue={failed?.values.dueDate ?? loan.dueDate ?? ""}
           error={errors.dueDate}
         />
@@ -212,11 +214,11 @@ function EditForm({ loan, onClose }: { loan: Props["loan"]; onClose: () => void 
       <InputField
         id={`loan-${loan.id}-note`}
         name="note"
-        label="Note (optional)"
+        label={t("common.noteOptional")}
         maxLength={NOTE_MAX}
         defaultValue={failed?.values.note ?? loan.note ?? ""}
         error={errors.note}
-        hint="The amount, wallet and date cannot be changed. Delete the loan and add it again to change them."
+        hint={t("loans.editHint")}
       />
       {failed?.formError ? (
         <p role="alert" className="text-sm text-destructive">
@@ -226,11 +228,11 @@ function EditForm({ loan, onClose }: { loan: Props["loan"]; onClose: () => void 
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className={primaryButton}>
           <Save className="size-4" aria-hidden="true" />
-          {pending ? "Saving" : "Save"}
+          {pending ? t("common.saving") : t("common.save")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>
           <X className="size-4" aria-hidden="true" />
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     </form>
@@ -238,16 +240,16 @@ function EditForm({ loan, onClose }: { loan: Props["loan"]; onClose: () => void 
 }
 
 function DeleteConfirm({ loan, onClose }: { loan: Props["loan"]; onClose: () => void }) {
+  const t = useT();
   const [state, formAction, pending] = useActionState(
     deleteLoanAction.bind(null, loan.id),
     idleAction,
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-2">
+    <form action={formAction} className="panel-enter flex flex-col gap-2">
       <p className="text-sm text-foreground">
-        Delete the loan with {loan.counterparty}? Its repayments, interest and fees are deleted
-        too, and your wallet balances and reports will change.
+        {t("loans.deleteConfirm", { name: loan.counterparty })}
       </p>
       <div className="flex gap-2">
         <button
@@ -256,10 +258,10 @@ function DeleteConfirm({ loan, onClose }: { loan: Props["loan"]; onClose: () => 
           className={`${buttonClass} bg-destructive text-destructive-foreground hover:opacity-90`}
         >
           <Trash2 className="size-4" aria-hidden="true" />
-          {pending ? "Deleting" : "Yes, delete"}
+          {pending ? t("common.deleting") : t("common.yesDelete")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>
-          Keep it
+          {t("common.keepIt")}
         </button>
       </div>
       {state.status === "error" ? (

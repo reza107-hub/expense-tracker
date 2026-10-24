@@ -29,6 +29,10 @@
   --chart-4: oklch(0.6 0.19 330);
   --chart-5: oklch(0.58 0.2 27);
   --radius: 0.75rem;
+  /* Motion. Change these three to tune every animation in the app. */
+  --motion-page: 350ms;
+  --motion-click: 120ms;
+  --motion-panel: 200ms;
 }
 
 /* Dark set. Applied to <html> in the root layout. */
@@ -100,6 +104,124 @@
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-sans), system-ui, sans-serif;
+    font-family: var(--font-sans), var(--font-bengali), system-ui, sans-serif;
+  }
+}
+
+/*
+ * Click feedback. One rule covers every button, link, drop-down and summary, so no
+ * component needs its own. A disabled or busy control does not shrink.
+ *
+ * It is deliberately outside any @layer. Tailwind's utility classes (such as
+ * transition-colors, which most buttons carry) live in a layer, and unlayered rules win
+ * over layered ones, so every control gets the same timing from --motion-click and also
+ * animates the shrink and its release.
+ */
+button,
+a[href],
+select,
+summary,
+[role="button"] {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-duration: var(--motion-click);
+  transition-timing-function: ease-out;
+}
+
+button:active:not(:disabled),
+a[href]:active,
+select:active:not(:disabled),
+summary:active,
+[role="button"]:active:not([aria-disabled="true"]) {
+  transform: scale(0.97);
+}
+
+/* A panel that opens in place fades in and rises a little. Entrance only. */
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-enter {
+  animation: panel-enter var(--motion-panel) ease-out both;
+}
+
+/*
+ * Page transitions (React ViewTransition, class "page"). The old page leaves quickly
+ * and the new one arrives over the rest of --motion-page, so the whole change takes
+ * about that long without making the user wait for it.
+ */
+@keyframes page-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes page-rise {
+  from {
+    transform: translateY(8px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+::view-transition-old(.page) {
+  animation: page-fade calc(var(--motion-page) * 0.4) ease-out both reverse;
+}
+
+::view-transition-new(.page) {
+  animation:
+    page-fade calc(var(--motion-page) * 0.6) ease-in calc(var(--motion-page) * 0.4) both,
+    page-rise var(--motion-page) ease-out both;
+}
+
+/* Clicks reach the live page while a transition plays. */
+::view-transition {
+  pointer-events: none;
+}
+
+/* The loading placeholder swaps for content with a plain fade. */
+::view-transition-old(.reveal) {
+  animation: page-fade calc(var(--motion-page) * 0.4) ease-out both reverse;
+}
+
+::view-transition-new(.reveal) {
+  animation: page-fade calc(var(--motion-page) * 0.6) ease-in both;
+}
+
+/* Reduced motion: nothing moves or pulses. Content still changes. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-page: 0ms;
+    --motion-click: 0ms;
+    --motion-panel: 0ms;
+  }
+
+  button:active:not(:disabled),
+  a[href]:active,
+  select:active:not(:disabled),
+  summary:active,
+  [role="button"]:active:not([aria-disabled="true"]) {
+    transform: none;
+  }
+
+  .animate-pulse,
+  .panel-enter {
+    animation: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

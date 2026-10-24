@@ -24,17 +24,24 @@ import {
   type EntryFormState,
   type EntryType,
 } from "@/lib/entries/validation";
+import { useT } from "@/i18n/client";
+import type { TranslationKey } from "@/i18n";
 
 type WalletOption = { id: number; name: string; balance: number };
 type CategoryOption = { id: number; name: string };
 
 const initialState: EntryFormState = { status: "idle" };
 
-const TABS: { type: EntryType; label: string; submit: string; icon: LucideIcon }[] = [
-  { type: "expense", label: "Expense", submit: "Add expense", icon: ArrowUpFromLine },
-  { type: "income", label: "Income", submit: "Add income", icon: ArrowDownToLine },
-  { type: "transfer", label: "Transfer", submit: "Move money", icon: ArrowLeftRight },
-  { type: "adjustment", label: "Adjust", submit: "Set balance", icon: Scale },
+const TABS: {
+  type: EntryType;
+  labelKey: TranslationKey;
+  submitKey: TranslationKey;
+  icon: LucideIcon;
+}[] = [
+  { type: "expense", labelKey: "entries.tab.expense", submitKey: "entries.submit.expense", icon: ArrowUpFromLine },
+  { type: "income", labelKey: "entries.tab.income", submitKey: "entries.submit.income", icon: ArrowDownToLine },
+  { type: "transfer", labelKey: "entries.tab.transfer", submitKey: "entries.submit.transfer", icon: ArrowLeftRight },
+  { type: "adjustment", labelKey: "entries.tab.adjustment", submitKey: "entries.submit.adjustment", icon: Scale },
 ];
 
 const ACTIONS = {
@@ -52,14 +59,15 @@ type Props = {
 };
 
 export default function EntryForms({ wallets, categories, today }: Props) {
+  const t = useT();
   const [type, setType] = useState<EntryType>("expense");
 
   return (
     <section
-      aria-label="Add an entry"
+      aria-label={t("entries.form.label")}
       className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 text-card-foreground"
     >
-      <div role="group" aria-label="Entry type" className="grid grid-cols-2 gap-1 rounded-md bg-muted p-1 sm:grid-cols-4">
+      <div role="group" aria-label={t("entries.form.typeGroup")} className="grid grid-cols-2 gap-1 rounded-md bg-muted p-1 sm:grid-cols-4">
         {TABS.map((tab) => (
           <button
             key={tab.type}
@@ -69,7 +77,7 @@ export default function EntryForms({ wallets, categories, today }: Props) {
             className="inline-flex h-9 items-center justify-center gap-1.5 rounded-sm px-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aria-pressed:bg-card aria-pressed:text-foreground"
           >
             <tab.icon className="size-4 shrink-0" aria-hidden="true" />
-            <span className="truncate">{tab.label}</span>
+            <span className="truncate">{t(tab.labelKey)}</span>
           </button>
         ))}
       </div>
@@ -81,6 +89,7 @@ export default function EntryForms({ wallets, categories, today }: Props) {
 }
 
 function EntryForm({ type, wallets, categories, today }: Props & { type: EntryType }) {
+  const t = useT();
   const [state, formAction, pending] = useActionState(ACTIONS[type], initialState);
   // Each save returns a new state object, so a warning the user has dismissed stays
   // dismissed, and a later warning shows again.
@@ -89,7 +98,7 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
   const warning = state.status === "low-balance" && dismissed !== state ? state : null;
   const values = state.status === "error" || state.status === "low-balance" ? state.values : undefined;
   const errors = failed?.fieldErrors ?? {};
-  const tab = TABS.find((t) => t.type === type)!;
+  const tab = TABS.find((candidate) => candidate.type === type)!;
 
   const walletOptions = wallets.map((wallet) => ({
     value: wallet.id,
@@ -109,8 +118,8 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
           <SelectField
             id="entry-wallet"
             name="walletId"
-            label="From wallet"
-            placeholder="Choose a wallet"
+            label={t("entries.field.fromWallet")}
+            placeholder={t("common.chooseWallet")}
             options={walletOptions}
             defaultValue={values?.walletId}
             error={errors.walletId}
@@ -118,8 +127,8 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
           <SelectField
             id="entry-to-wallet"
             name="toWalletId"
-            label="To wallet"
-            placeholder="Choose a wallet"
+            label={t("entries.field.toWallet")}
+            placeholder={t("common.chooseWallet")}
             options={walletOptions}
             defaultValue={values?.toWalletId}
             error={errors.toWalletId}
@@ -129,8 +138,14 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
         <SelectField
           id="entry-wallet"
           name="walletId"
-          label={type === "expense" ? "Pay from" : type === "income" ? "Add to" : "Wallet"}
-          placeholder="Choose a wallet"
+          label={
+            type === "expense"
+              ? t("entries.field.payFrom")
+              : type === "income"
+                ? t("entries.field.addTo")
+                : t("entries.field.wallet")
+          }
+          placeholder={t("common.chooseWallet")}
           options={walletOptions}
           defaultValue={values?.walletId}
           error={errors.walletId}
@@ -141,18 +156,18 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
         <InputField
           id="entry-new-balance"
           name="newBalance"
-          label="New balance (taka)"
+          label={t("entries.field.newBalance")}
           inputMode="decimal"
           required
           defaultValue={values?.newBalance}
           error={errors.newBalance}
-          hint="What the wallet holds now, for example after a crypto price change."
+          hint={t("entries.field.newBalanceHint")}
         />
       ) : (
         <InputField
           id="entry-amount"
           name="amount"
-          label="Amount (taka)"
+          label={t("common.amountTaka")}
           inputMode="decimal"
           required
           defaultValue={values?.amount}
@@ -164,8 +179,8 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
         <SelectField
           id="entry-category"
           name="categoryId"
-          label="Category"
-          placeholder="Choose a category"
+          label={t("entries.field.category")}
+          placeholder={t("entries.field.chooseCategory")}
           options={categories.map((c) => ({ value: c.id, label: c.name }))}
           defaultValue={values?.categoryId}
           error={errors.categoryId}
@@ -177,7 +192,7 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
           id="entry-date"
           name="entryDate"
           type="date"
-          label="Date"
+          label={t("common.date")}
           required
           max={today}
           defaultValue={values?.entryDate ?? today}
@@ -186,7 +201,7 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
         <InputField
           id="entry-note"
           name="note"
-          label="Note (optional)"
+          label={t("common.noteOptional")}
           maxLength={NOTE_MAX}
           defaultValue={values?.note}
           error={errors.note}
@@ -195,7 +210,7 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
 
       {state.status === "saved" ? (
         <p role="status" className="text-sm text-success">
-          Saved.
+          {t("common.saved")}
         </p>
       ) : null}
       {failed?.formError ? (
@@ -218,7 +233,7 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
           className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
         >
           <Plus className="size-4" aria-hidden="true" />
-          {pending ? "Saving" : tab.submit}
+          {pending ? t("common.saving") : t(tab.submitKey)}
         </button>
       )}
     </form>

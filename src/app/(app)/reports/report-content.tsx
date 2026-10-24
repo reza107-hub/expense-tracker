@@ -1,20 +1,25 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Suspense } from "react";
 import { getReport } from "@/data/reports";
-import { formatDate, monthName } from "@/lib/entries/display";
+import { getTranslator } from "@/i18n/server";
+import type { Translate } from "@/i18n";
+import { formatDate, monthName, monthShort } from "@/lib/entries/display";
 import { monthKey, parseEntriesQuery } from "@/lib/entries/query-params";
 import { formatTaka } from "@/lib/money";
 import { periodContaining, shiftPeriod } from "@/lib/period";
 import { percentOf } from "@/lib/reports/queries";
+import { Reveal } from "@/components/page-transition";
+import { AdviceSkeleton } from "@/components/skeleton";
 import AdviceSection from "./advice-section";
 
-/** "+৳ 1,500 (20%)", or "(n/a)" when there was no spending to compare with. */
-function describeChange(change: number, percent: number | null): string {
-  if (change === 0 && percent === null) return "no change";
+/** "+৳ 1,500 (+20%)", or "(n/a)" when there was no spending to compare with. */
+function describeChange(change: number, percent: number | null, t: Translate): string {
+  if (change === 0 && percent === null) return t("reports.change.none");
   const sign = change > 0 ? "+" : change < 0 ? "-" : "";
   const amount = `${sign}৳ ${formatTaka(Math.abs(change))}`;
-  return percent === null ? `${amount} (n/a)` : `${amount} (${percent > 0 ? "+" : ""}${percent}%)`;
+  return percent === null
+    ? `${amount} (${t("reports.change.na")})`
+    : `${amount} (${percent > 0 ? "+" : ""}${percent}%)`;
 }
 
 const navLink =
@@ -26,33 +31,36 @@ export default async function ReportContent({
   searchParams: PageProps<"/reports">["searchParams"];
 }) {
   const { month } = parseEntriesQuery(await searchParams);
-  const { report, startDay, today } = await getReport(month);
+  const [{ report, startDay, today }, { t }] = await Promise.all([getReport(month), getTranslator()]);
   const { period } = report;
 
   const previous = shiftPeriod(period, -1, startDay);
   const next = shiftPeriod(period, 1, startDay);
   // No point paging into months that have not started yet.
   const showNext = next.start <= periodContaining(today, startDay).end;
-  const maxTrend = Math.max(...report.trend.map((t) => t.total), 1);
+  const maxTrend = Math.max(...report.trend.map((point) => point.total), 1);
 
   return (
     <>
-      <nav aria-label="Month" className="flex items-center justify-between gap-3">
+      <nav aria-label={t("reports.monthNav")} className="flex items-center justify-between gap-3">
         <Link href={`/reports?month=${monthKey(previous)}`} className={navLink}>
           <ChevronLeft className="size-4" aria-hidden="true" />
-          {monthName(previous.year, previous.month)}
+          {monthShort(previous.month, t)} {previous.year}
         </Link>
         <div className="text-center">
           <h2 className="text-base font-semibold tracking-tight">
-            {monthName(period.year, period.month)}
+            {monthName(period.year, period.month, t)}
           </h2>
           <p className="text-xs text-muted-foreground">
-            {formatDate(period.start)} to {formatDate(period.end)}
+            {t("reports.range", {
+              start: formatDate(period.start, t),
+              end: formatDate(period.end, t),
+            })}
           </p>
         </div>
         {showNext ? (
           <Link href={`/reports?month=${monthKey(next)}`} className={navLink}>
-            {monthName(next.year, next.month)}
+            {monthShort(next.month, t)} {next.year}
             <ChevronRight className="size-4" aria-hidden="true" />
           </Link>
         ) : (
@@ -62,34 +70,38 @@ export default async function ReportContent({
 
       {!report.hasEntries ? (
         <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-          Nothing is recorded in this month.{" "}
+          {t("reports.empty")}{" "}
           <Link href="/entries" className="font-medium text-primary hover:underline">
-            Add an entry
+            {t("reports.addEntryLink")}
           </Link>
         </p>
       ) : (
         <>
           <section
-            aria-label="Total spending"
+            aria-label={t("reports.total")}
             className="rounded-lg border border-border bg-card p-4 text-card-foreground"
           >
-            <p className="text-sm text-muted-foreground">Total spending</p>
+            <p className="text-sm text-muted-foreground">{t("reports.total")}</p>
             <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">
               ৳ {formatTaka(report.total)}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {report.previousTotal === 0
-                ? `Nothing was spent in ${monthName(previous.year, previous.month)}.`
-                : `${describeChange(report.change, report.changePercent)} compared with ${monthName(previous.year, previous.month)} (৳ ${formatTaka(report.previousTotal)}).`}
+                ? t("reports.noPrevious", { month: monthName(previous.year, previous.month, t) })
+                : t("reports.compared", {
+                    change: describeChange(report.change, report.changePercent, t),
+                    month: monthName(previous.year, previous.month, t),
+                    amount: formatTaka(report.previousTotal),
+                  })}
             </p>
           </section>
 
           <section aria-labelledby="category-heading" className="flex flex-col gap-3">
             <h2 id="category-heading" className="text-base font-semibold tracking-tight">
-              By category
+              {t("reports.byCategory")}
             </h2>
             {report.byCategory.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No spending in this month.</p>
+              <p className="text-sm text-muted-foreground">{t("reports.noSpending")}</p>
             ) : (
               <ul className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
                 {report.byCategory.map((category) => (
@@ -103,7 +115,7 @@ export default async function ReportContent({
                     </div>
                     <div
                       role="img"
-                      aria-label={`${category.name} is ${category.share}% of spending`}
+                      aria-label={t("reports.categoryShare", { name: category.name, percent: category.share })}
                       className="h-2 overflow-hidden rounded-full bg-muted"
                     >
                       <div
@@ -114,7 +126,9 @@ export default async function ReportContent({
                     <p className="text-xs text-muted-foreground">
                       {category.previous === 0 && category.total === 0
                         ? ""
-                        : `${describeChange(category.change, category.changePercent)} vs last month`}
+                        : t("reports.vsLastMonth", {
+                            change: describeChange(category.change, category.changePercent, t),
+                          })}
                     </p>
                   </li>
                 ))}
@@ -124,10 +138,10 @@ export default async function ReportContent({
 
           <section aria-labelledby="wallet-heading" className="flex flex-col gap-3">
             <h2 id="wallet-heading" className="text-base font-semibold tracking-tight">
-              By wallet
+              {t("reports.byWallet")}
             </h2>
             {report.byWallet.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No spending in this month.</p>
+              <p className="text-sm text-muted-foreground">{t("reports.noSpending")}</p>
             ) : (
               <ul className="flex flex-col divide-y divide-border rounded-lg border border-border bg-card text-card-foreground">
                 {report.byWallet.map((wallet) => (
@@ -147,7 +161,7 @@ export default async function ReportContent({
 
       <section aria-labelledby="trend-heading" className="flex flex-col gap-3">
         <h2 id="trend-heading" className="text-base font-semibold tracking-tight">
-          Last six months
+          {t("reports.trend")}
         </h2>
         <ol className="grid grid-cols-6 gap-2 rounded-lg border border-border bg-card p-4 text-card-foreground">
           {report.trend.map(({ period: p, total }) => (
@@ -162,16 +176,16 @@ export default async function ReportContent({
                 />
               </div>
               <span className="text-xs text-muted-foreground">
-                {monthName(p.year, p.month).slice(0, 3)}
+                {monthShort(p.month, t)}
               </span>
             </li>
           ))}
         </ol>
       </section>
 
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading advice</p>}>
+      <Reveal fallback={<AdviceSkeleton />}>
         <AdviceSection report={report} />
-      </Suspense>
+      </Reveal>
     </>
   );
 }

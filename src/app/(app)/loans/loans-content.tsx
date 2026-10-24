@@ -2,6 +2,7 @@ import { getLoansPage } from "@/data/loans";
 import { formatTaka } from "@/lib/money";
 import CreateLoanForm from "./create-loan-form";
 import LoanCard from "./loan-card";
+import { getTranslator } from "@/i18n/server";
 
 function Total({ label, poisha }: { label: string; poisha: number }) {
   return (
@@ -13,7 +14,10 @@ function Total({ label, poisha }: { label: string; poisha: number }) {
 }
 
 export default async function LoansContent() {
-  const { loans, repayments, wallets, totals, today } = await getLoansPage();
+  const [{ loans, repayments, wallets, totals, today }, { t }] = await Promise.all([
+    getLoansPage(),
+    getTranslator(),
+  ]);
   const open = loans.filter((loan) => loan.status === "open");
   const closed = loans.filter((loan) => loan.status === "closed");
 
@@ -31,22 +35,22 @@ export default async function LoansContent() {
   return (
     <>
       <section
-        aria-label="Loan totals"
+        aria-label={t("loans.totals")}
         className="grid gap-4 rounded-lg border border-border bg-card p-4 text-card-foreground sm:grid-cols-2"
       >
-        <Total label="You owe" poisha={totals.owe} />
-        <Total label="Others owe you" poisha={totals.owed} />
+        <Total label={t("home.youOwe")} poisha={totals.owe} />
+        <Total label={t("home.othersOweYou")} poisha={totals.owed} />
       </section>
 
       <CreateLoanForm wallets={wallets} today={today} />
 
       <section aria-labelledby="open-heading" className="flex flex-col gap-3">
         <h2 id="open-heading" className="text-base font-semibold tracking-tight">
-          Open loans
+          {t("loans.open")}
         </h2>
         {open.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            No open loans. Add one above when you borrow or lend money.
+            {t("loans.emptyOpen")}
           </p>
         ) : (
           <ul className="flex flex-col gap-3">{open.map(card)}</ul>
@@ -56,7 +60,7 @@ export default async function LoansContent() {
       {closed.length > 0 ? (
         <section aria-labelledby="closed-heading" className="flex flex-col gap-3">
           <h2 id="closed-heading" className="text-base font-semibold tracking-tight">
-            Closed loans
+            {t("loans.closed")}
           </h2>
           <ul className="flex flex-col gap-3">{closed.map(card)}</ul>
         </section>

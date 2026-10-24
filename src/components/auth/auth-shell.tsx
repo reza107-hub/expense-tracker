@@ -1,5 +1,7 @@
 import { Wallet } from "lucide-react";
 import type { ReactNode } from "react";
+import LanguageSwitch from "@/components/language-switch";
+import { getTranslator } from "@/i18n/server";
 
 type AuthShellProps = {
   title: string;
@@ -9,13 +11,17 @@ type AuthShellProps = {
 };
 
 /** The centred card used by the sign-in and registration pages. */
-export default function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
+export default async function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
+  const { t } = await getTranslator();
   return (
     <main className="flex flex-1 items-center justify-center p-6">
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 text-card-foreground">
-        <div className="flex items-center gap-2">
-          <Wallet className="size-5 text-primary" aria-hidden="true" />
-          <span className="text-base font-semibold tracking-tight">Expense Tracker</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Wallet className="size-5 text-primary" aria-hidden="true" />
+            <span className="text-base font-semibold tracking-tight">{t("app.name")}</span>
+          </div>
+          <LanguageSwitch />
         </div>
         <h1 className="mt-6 text-xl font-semibold tracking-tight">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>

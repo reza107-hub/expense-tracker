@@ -4,18 +4,20 @@ import { useActionState } from "react";
 import { LockKeyhole } from "lucide-react";
 import TextField from "@/components/auth/text-field";
 import { signIn } from "@/lib/auth/actions";
+import { useT } from "@/i18n/client";
+import type { Translate } from "@/i18n";
 import { minutesFor } from "@/lib/auth/lock-message";
 import type { SignInState } from "@/lib/auth/types";
 
 const initialState: SignInState = { status: "idle" };
 
-function messageFor(state: SignInState): string | null {
+function messageFor(state: SignInState, t: Translate): string | null {
   switch (state.status) {
     case "invalid":
-      return "Incorrect email or password.";
+      return t("auth.signIn.invalid");
     case "locked": {
       const minutes = minutesFor(state.retryAfterSeconds);
-      return `Too many attempts for this email. Try again in ${minutes} ${minutes === 1 ? "minute" : "minutes"}.`;
+      return minutes === 1 ? t("auth.signIn.locked1") : t("auth.signIn.lockedN", { minutes });
     }
     case "error":
       return state.message;
@@ -26,14 +28,15 @@ function messageFor(state: SignInState): string | null {
 
 export default function SignInForm() {
   const [state, formAction, pending] = useActionState(signIn, initialState);
-  const message = messageFor(state);
+  const t = useT();
+  const message = messageFor(state, t);
 
   return (
     <form action={formAction} className="mt-6 flex flex-col gap-4">
       <TextField
         id="email"
         name="email"
-        label="Email"
+        label={t("auth.field.email")}
         type="email"
         autoComplete="email"
         autoFocus
@@ -43,7 +46,7 @@ export default function SignInForm() {
       <TextField
         id="password"
         name="password"
-        label="Password"
+        label={t("auth.field.password")}
         type="password"
         autoComplete="current-password"
         maxLength={128}
@@ -61,7 +64,7 @@ export default function SignInForm() {
         className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
       >
         <LockKeyhole className="size-4" aria-hidden="true" />
-        {pending ? "Signing in" : "Sign in"}
+        {pending ? t("auth.signIn.pending") : t("auth.signIn.submit")}
       </button>
     </form>
   );

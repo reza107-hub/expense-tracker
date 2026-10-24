@@ -3,6 +3,7 @@ import type { LoanSummary, Repayment } from "@/lib/loans/queries";
 import { formatTaka } from "@/lib/money";
 import LoanControls from "./loan-controls";
 import RepaymentRows from "./repayment-rows";
+import { getTranslator } from "@/i18n/server";
 
 type Props = {
   loan: LoanSummary;
@@ -21,7 +22,8 @@ function Figure({ label, poisha }: { label: string; poisha: number }) {
 }
 
 /** One loan: who, how much, what is left, and its repayments and controls. */
-export default function LoanCard({ loan, repayments, wallets, today }: Props) {
+export default async function LoanCard({ loan, repayments, wallets, today }: Props) {
+  const { t } = await getTranslator();
   const borrowed = loan.direction === "borrowed";
   // Due-date alerts arrive with the alerts work. Here the date is only shown.
   const overdue = loan.status === "open" && loan.dueDate !== null && loan.dueDate < today;
@@ -32,8 +34,11 @@ export default function LoanCard({ loan, repayments, wallets, today }: Props) {
         <div className="min-w-0">
           <h3 className="truncate text-base font-medium">{loan.counterparty}</h3>
           <p className="text-sm text-muted-foreground">
-            {borrowed ? "You borrowed" : "You lent"}
-            {loan.startDate ? ` on ${formatDate(loan.startDate)}` : ""}
+            {loan.startDate
+              ? t(borrowed ? "loans.card.borrowedOn" : "loans.card.lentOn", {
+                  date: formatDate(loan.startDate, t),
+                })
+              : t(borrowed ? "loans.card.borrowed" : "loans.card.lent")}
           </p>
         </div>
         <span
@@ -43,20 +48,19 @@ export default function LoanCard({ loan, repayments, wallets, today }: Props) {
               : "shrink-0 rounded-md bg-muted px-2 py-1 text-xs font-medium text-success"
           }
         >
-          {loan.status === "open" ? "Open" : "Closed"}
+          {loan.status === "open" ? t("loans.status.open") : t("loans.status.closed")}
         </span>
       </header>
 
       <dl className="grid grid-cols-3 gap-3">
-        <Figure label="Original" poisha={loan.principal} />
-        <Figure label="Repaid" poisha={loan.repaid} />
-        <Figure label="Outstanding" poisha={loan.outstanding} />
+        <Figure label={t("loans.figure.original")} poisha={loan.principal} />
+        <Figure label={t("loans.figure.repaid")} poisha={loan.repaid} />
+        <Figure label={t("loans.figure.outstanding")} poisha={loan.outstanding} />
       </dl>
 
       {loan.dueDate ? (
         <p className={overdue ? "text-sm text-destructive" : "text-sm text-muted-foreground"}>
-          Due {formatDate(loan.dueDate)}
-          {overdue ? " (overdue)" : ""}
+          {t(overdue ? "loans.dueOverdue" : "loans.due", { date: formatDate(loan.dueDate, t) })}
         </p>
       ) : null}
       {loan.note ? <p className="text-sm break-words text-foreground">{loan.note}</p> : null}

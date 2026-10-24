@@ -2,20 +2,46 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { LogOut, Settings, Wallet } from "lucide-react";
 import AlertBanners from "@/components/app-shell/alert-banners";
+import LanguageSwitch from "@/components/language-switch";
+import { PageSkeleton } from "@/components/skeleton";
+import { getTranslator } from "@/i18n/server";
+import LanguageScope from "@/i18n/language-scope";
 import NavLinks from "@/components/app-shell/nav-links";
 import { signOut } from "@/lib/auth/actions";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
+  // The language comes from a cookie, so everything that shows text sits inside this
+  // boundary. Until it resolves, a placeholder shows.
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-dvh p-4 md:p-8">
+          <div className="mx-auto w-full max-w-3xl">
+            <PageSkeleton />
+          </div>
+        </div>
+      }
+    >
+      <LanguageScope>
+        <AppShell>{children}</AppShell>
+      </LanguageScope>
+    </Suspense>
+  );
+}
+
+async function AppShell({ children }: { children: React.ReactNode }) {
+  const { t } = await getTranslator();
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[14rem_minmax(0,1fr)]">
       <aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r border-border bg-card p-4 md:flex">
         <div className="flex items-center gap-2 px-2 pt-1 text-card-foreground">
           <Wallet className="size-5 text-primary" aria-hidden="true" />
-          <span className="text-base font-semibold tracking-tight">
-            Expense Tracker
-          </span>
+          <span className="text-base font-semibold tracking-tight">{t("app.name")}</span>
         </div>
-        <nav aria-label="Main">
+        <div className="px-2">
+          <LanguageSwitch />
+        </div>
+        <nav aria-label={t("nav.main")}>
           <NavLinks variant="sidebar" />
         </nav>
         <form action={signOut} className="mt-auto">
@@ -24,23 +50,22 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <LogOut className="size-4" aria-hidden="true" />
-            Sign out
+            {t("nav.signOut")}
           </button>
         </form>
       </aside>
 
       <div className="flex min-w-0 flex-col">
         <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:hidden">
-          <div className="flex items-center gap-2">
-            <Wallet className="size-5 text-primary" aria-hidden="true" />
-            <span className="text-base font-semibold tracking-tight">
-              Expense Tracker
-            </span>
+          <div className="flex min-w-0 items-center gap-2">
+            <Wallet className="size-5 shrink-0 text-primary" aria-hidden="true" />
+            <span className="truncate text-base font-semibold tracking-tight">{t("app.name")}</span>
           </div>
-          <div className="flex items-center">
+          <div className="flex shrink-0 items-center gap-1">
+            <LanguageSwitch />
             <Link
               href="/settings"
-              aria-label="Settings"
+              aria-label={t("shell.settings")}
               className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Settings className="size-5" aria-hidden="true" />
@@ -48,7 +73,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             <form action={signOut}>
               <button
                 type="submit"
-                aria-label="Sign out"
+                aria-label={t("nav.signOut")}
                 className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <LogOut className="size-5" aria-hidden="true" />
@@ -67,7 +92,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       </div>
 
       <nav
-        aria-label="Main"
+        aria-label={t("nav.main")}
         className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <NavLinks variant="bottom" />

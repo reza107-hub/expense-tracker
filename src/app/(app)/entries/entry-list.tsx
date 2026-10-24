@@ -7,6 +7,7 @@ import { entriesHref, monthKey } from "@/lib/entries/query-params";
 import { shiftPeriod, type Period } from "@/lib/period";
 import type { CategoryChoice, WalletChoice } from "./edit-entry-form";
 import EntryRows from "./entry-rows";
+import { getTranslator } from "@/i18n/server";
 
 type Props = {
   period: Period;
@@ -24,7 +25,7 @@ const navLink =
 const selectClass =
   "h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-export default function EntryList({
+export default async function EntryList({
   period,
   today,
   startDay,
@@ -33,6 +34,7 @@ export default function EntryList({
   categories,
   filters,
 }: Props) {
+  const { t } = await getTranslator();
   const previous = shiftPeriod(period, -1, startDay);
   const next = shiftPeriod(period, 1, startDay);
   // No point paging into a month that has not started yet.
@@ -44,22 +46,25 @@ export default function EntryList({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h2 id="list-heading" className="text-base font-semibold tracking-tight">
-            {monthName(period.year, period.month)}
+            {monthName(period.year, period.month, t)}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {formatDate(period.start)} to {formatDate(period.end)}
+            {t("reports.range", {
+              start: formatDate(period.start, t),
+              end: formatDate(period.end, t),
+            })}
           </p>
         </div>
-        <nav aria-label="Month" className="flex gap-2">
+        <nav aria-label={t("reports.monthNav")} className="flex gap-2">
           <Link
             href={entriesHref(previous, filters)}
-            aria-label="Previous month"
+            aria-label={t("entries.list.previousMonth")}
             className={navLink}
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Link>
           {hasNext ? (
-            <Link href={entriesHref(next, filters)} aria-label="Next month" className={navLink}>
+            <Link href={entriesHref(next, filters)} aria-label={t("entries.list.nextMonth")} className={navLink}>
               <ChevronRight className="size-4" aria-hidden="true" />
             </Link>
           ) : (
@@ -74,11 +79,11 @@ export default function EntryList({
         <input type="hidden" name="month" value={monthKey(period)} />
         <select
           name="wallet"
-          aria-label="Filter by wallet"
+          aria-label={t("entries.list.filterWallet")}
           defaultValue={filters.walletId ?? ""}
           className={selectClass}
         >
-          <option value="">All wallets</option>
+          <option value="">{t("entries.list.allWallets")}</option>
           {wallets.map((wallet) => (
             <option key={wallet.id} value={wallet.id}>
               {wallet.name}
@@ -87,11 +92,11 @@ export default function EntryList({
         </select>
         <select
           name="category"
-          aria-label="Filter by category"
+          aria-label={t("entries.list.filterCategory")}
           defaultValue={filters.categoryId ?? ""}
           className={selectClass}
         >
-          <option value="">All categories</option>
+          <option value="">{t("entries.list.allCategories")}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -104,14 +109,14 @@ export default function EntryList({
             className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-md bg-muted px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             <Filter className="size-4" aria-hidden="true" />
-            Filter
+            {t("entries.list.filter")}
           </button>
           {filtered ? (
             <Link
               href={entriesHref(period, {})}
               className="inline-flex h-10 items-center justify-center rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              Clear
+              {t("entries.list.clear")}
             </Link>
           ) : null}
         </div>
@@ -120,8 +125,8 @@ export default function EntryList({
       {entries.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
           {filtered
-            ? "No entries match these filters in this month."
-            : `No entries in ${monthName(period.year, period.month)}.`}
+            ? t("entries.list.noMatch")
+            : t("entries.list.none", { month: monthName(period.year, period.month, t) })}
         </p>
       ) : (
         <EntryRows entries={entries} wallets={wallets} categories={categories} />

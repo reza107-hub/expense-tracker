@@ -9,6 +9,7 @@ import { formatTaka } from "@/lib/money";
 import type { ListedEntry } from "@/lib/entries/list";
 import { NOTE_MAX, type EntryFormState } from "@/lib/entries/validation";
 import LowBalanceWarning from "./low-balance-warning";
+import { useT } from "@/i18n/client";
 
 export type WalletChoice = { id: number; name: string; archived: boolean };
 export type CategoryChoice = { id: number; name: string; archived: boolean; reserved: boolean };
@@ -24,6 +25,7 @@ const idle: EntryFormState = { status: "idle" };
 
 /** Edits one plain entry in place. The entry's type cannot be changed. */
 export default function EditEntryForm({ entry, wallets, categories, onClose }: Props) {
+  const t = useT();
   const [state, formAction, pending] = useActionState(updateEntryAction.bind(null, entry.id), idle);
   const [dismissed, setDismissed] = useState<EntryFormState | null>(null);
   const failed = state.status === "error" ? state : null;
@@ -40,11 +42,11 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
   const usable = (w: WalletChoice) => !w.archived || w.id === entry.walletId || w.id === entry.toWalletId;
   const walletOptions = wallets.filter(usable).map((w) => ({
     value: w.id,
-    label: w.archived ? `${w.name} (archived)` : w.name,
+    label: w.archived ? t("entries.archivedSuffix", { name: w.name }) : w.name,
   }));
   const categoryOptions = categories
     .filter((c) => (!c.reserved && !c.archived) || c.id === entry.categoryId)
-    .map((c) => ({ value: c.id, label: c.archived ? `${c.name} (archived)` : c.name }));
+    .map((c) => ({ value: c.id, label: c.archived ? t("entries.archivedSuffix", { name: c.name }) : c.name }));
 
   const id = `entry-${entry.id}`;
   const isTransfer = entry.type === "transfer";
@@ -54,14 +56,14 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
     <form
       action={formAction}
       onChange={() => warning && setDismissed(state)}
-      className="flex flex-col gap-4"
+      className="panel-enter flex flex-col gap-4"
     >
       <div className={isTransfer ? "grid gap-4 sm:grid-cols-2" : undefined}>
         <SelectField
           id={`${id}-wallet`}
           name="walletId"
-          label={isTransfer ? "From wallet" : "Wallet"}
-          placeholder="Choose a wallet"
+          label={isTransfer ? t("entries.field.fromWallet") : t("entries.field.wallet")}
+          placeholder={t("common.chooseWallet")}
           options={walletOptions}
           defaultValue={values?.walletId ?? String(entry.walletId)}
           error={errors.walletId}
@@ -70,8 +72,8 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
           <SelectField
             id={`${id}-to-wallet`}
             name="toWalletId"
-            label="To wallet"
-            placeholder="Choose a wallet"
+            label={t("entries.field.toWallet")}
+            placeholder={t("common.chooseWallet")}
             options={walletOptions}
             defaultValue={values?.toWalletId ?? String(entry.toWalletId ?? "")}
             error={errors.toWalletId}
@@ -82,20 +84,20 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
       <InputField
         id={`${id}-amount`}
         name="amount"
-        label={isAdjustment ? "Change in balance (taka)" : "Amount (taka)"}
+        label={isAdjustment ? t("entries.field.balanceChange") : t("common.amountTaka")}
         inputMode="decimal"
         required
         defaultValue={values?.amount ?? formatTaka(entry.amount)}
         error={errors.amount}
-        hint={isAdjustment ? "Use a minus sign to lower the balance." : undefined}
+        hint={isAdjustment ? t("entries.field.balanceChangeHint") : undefined}
       />
 
       {entry.type === "expense" ? (
         <SelectField
           id={`${id}-category`}
           name="categoryId"
-          label="Category"
-          placeholder="Choose a category"
+          label={t("entries.field.category")}
+          placeholder={t("entries.field.chooseCategory")}
           options={categoryOptions}
           defaultValue={values?.categoryId ?? String(entry.categoryId ?? "")}
           error={errors.categoryId}
@@ -107,7 +109,7 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
           id={`${id}-date`}
           name="entryDate"
           type="date"
-          label="Date"
+          label={t("common.date")}
           required
           defaultValue={values?.entryDate ?? entry.entryDate}
           error={errors.entryDate}
@@ -115,7 +117,7 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
         <InputField
           id={`${id}-note`}
           name="note"
-          label="Note (optional)"
+          label={t("common.noteOptional")}
           maxLength={NOTE_MAX}
           defaultValue={values?.note ?? entry.note ?? ""}
           error={errors.note}
@@ -143,7 +145,7 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
             className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
           >
             <Save className="size-4" aria-hidden="true" />
-            {pending ? "Saving" : "Save"}
+            {pending ? t("common.saving") : t("common.save")}
           </button>
           <button
             type="button"
@@ -151,7 +153,7 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
             className="inline-flex h-9 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             <X className="size-4" aria-hidden="true" />
-            Cancel
+            {t("common.cancel")}
           </button>
         </div>
       )}

@@ -3,6 +3,7 @@ import { formatTaka } from "@/lib/money";
 import CreateWalletForm from "./create-wallet-form";
 import RestoreButton from "./restore-button";
 import WalletActions from "./wallet-actions";
+import { getTranslator } from "@/i18n/server";
 
 /** Amounts are shown in taka. A negative balance is flagged with the warning colour. */
 function Balance({ poisha }: { poisha: number }) {
@@ -14,16 +15,20 @@ function Balance({ poisha }: { poisha: number }) {
 }
 
 export default async function WalletsContent() {
-  const [active, archived] = await Promise.all([listWallets(), listArchivedWallets()]);
+  const [active, archived, { t }] = await Promise.all([
+    listWallets(),
+    listArchivedWallets(),
+    getTranslator(),
+  ]);
   const total = active.reduce((sum, wallet) => sum + wallet.balance, 0);
 
   return (
     <>
       <section
-        aria-label="Total balance"
+        aria-label={t("wallets.totalBalance")}
         className="rounded-lg border border-border bg-card p-4 text-card-foreground"
       >
-        <p className="text-sm text-muted-foreground">Total balance</p>
+        <p className="text-sm text-muted-foreground">{t("wallets.totalBalance")}</p>
         <p className="mt-1 text-2xl font-semibold tracking-tight">
           <Balance poisha={total} />
         </p>
@@ -33,11 +38,11 @@ export default async function WalletsContent() {
 
       <section aria-labelledby="active-heading" className="flex flex-col gap-3">
         <h2 id="active-heading" className="text-base font-semibold tracking-tight">
-          Your wallets
+          {t("wallets.yourWallets")}
         </h2>
         {active.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            You have no wallets yet. Add one above to start recording entries.
+            {t("wallets.empty")}
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
@@ -66,7 +71,7 @@ export default async function WalletsContent() {
       {archived.length > 0 ? (
         <section aria-labelledby="archived-heading" className="flex flex-col gap-3">
           <h2 id="archived-heading" className="text-base font-semibold tracking-tight">
-            Archived
+            {t("common.archived")}
           </h2>
           <ul className="flex flex-col gap-3">
             {archived.map((wallet) => (

@@ -5,6 +5,7 @@ import { Archive, Pencil, Save, X } from "lucide-react";
 import InputField from "@/components/forms/input-field";
 import { archiveWalletAction, updateWalletAction } from "@/actions/wallets";
 import { WALLET_NAME_MAX, type WalletActionState, type WalletFormState } from "@/lib/wallets/validation";
+import { useT } from "@/i18n/client";
 
 const idleForm: WalletFormState = { status: "idle" };
 const idleAction: WalletActionState = { status: "idle" };
@@ -22,6 +23,7 @@ type Props = {
 
 /** Edit and archive controls for one active wallet. */
 export default function WalletActions({ walletId, name, openingBalance }: Props) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [archiveState, archiveAction, archiving] = useActionState(
     archiveWalletAction.bind(null, walletId),
@@ -41,12 +43,12 @@ export default function WalletActions({ walletId, name, openingBalance }: Props)
         <div className="flex flex-wrap gap-1">
           <button type="button" onClick={() => setEditing(true)} className={quietButton}>
             <Pencil className="size-4" aria-hidden="true" />
-            Edit
+            {t("common.edit")}
           </button>
           <form action={archiveAction}>
             <button type="submit" disabled={archiving} className={quietButton}>
               <Archive className="size-4" aria-hidden="true" />
-              {archiving ? "Archiving" : "Archive"}
+              {archiving ? t("common.archiving") : t("common.archive")}
             </button>
           </form>
         </div>
@@ -67,6 +69,7 @@ function EditForm({
   openingBalance,
   onClose,
 }: Props & { onClose: () => void }) {
+  const t = useT();
   const [state, formAction, pending] = useActionState(
     updateWalletAction.bind(null, walletId),
     idleForm,
@@ -78,12 +81,12 @@ function EditForm({
   }, [state, onClose]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="panel-enter flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <InputField
           id={`wallet-${walletId}-name`}
           name="name"
-          label="Name"
+          label={t("common.name")}
           required
           maxLength={WALLET_NAME_MAX}
           defaultValue={failed?.values.name ?? name}
@@ -92,11 +95,11 @@ function EditForm({
         <InputField
           id={`wallet-${walletId}-opening`}
           name="openingBalance"
-          label="Opening balance (taka)"
+          label={t("common.openingBalanceTaka")}
           inputMode="decimal"
           defaultValue={failed?.values.openingBalance ?? openingBalance}
           error={failed?.fieldErrors.openingBalance}
-          hint="The balance shown above also includes your entries."
+          hint={t("wallets.edit.balanceHint")}
         />
       </div>
 
@@ -113,11 +116,11 @@ function EditForm({
           className={`${buttonClass} bg-primary text-primary-foreground hover:opacity-90`}
         >
           <Save className="size-4" aria-hidden="true" />
-          {pending ? "Saving" : "Save"}
+          {pending ? t("common.saving") : t("common.save")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>
           <X className="size-4" aria-hidden="true" />
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     </form>

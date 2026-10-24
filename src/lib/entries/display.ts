@@ -1,38 +1,58 @@
+import type { Language, Translate, TranslationKey } from "@/i18n";
 import type { ListedEntry } from "./list";
 
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+/** The long name of a month (1 to 12) in the chosen language. */
+export function monthLong(month: number, t: Translate): string {
+  return t(`month.${month}` as TranslationKey);
+}
+
+/** The short name of a month (1 to 12) in the chosen language. */
+export function monthShort(month: number, t: Translate): string {
+  return t(`monthShort.${month}` as TranslationKey);
+}
 
 /** "October 2026". */
-export function monthName(year: number, month: number): string {
-  return `${MONTHS[month - 1]} ${year}`;
+export function monthName(year: number, month: number, t: Translate): string {
+  return `${monthLong(month, t)} ${year}`;
 }
 
 /** "5 Oct 2026" from "2026-10-05". Plain string work, so no time zone can shift it. */
-export function formatDate(date: string): string {
+export function formatDate(date: string, t: Translate): string {
   const [year, month, day] = date.split("-").map(Number);
-  return `${day} ${MONTHS[month - 1].slice(0, 3)} ${year}`;
+  return `${day} ${monthShort(month, t)} ${year}`;
+}
+
+/**
+ * "20 Oct 2026, 3:42 pm" in Dhaka time. Bangla uses Bangla month names but keeps Latin
+ * digits, the same as every other number in the app.
+ */
+export function formatDateTime(iso: string, language: Language): string {
+  return new Intl.DateTimeFormat(language === "bn" ? "bn-BD-u-nu-latn" : "en-GB", {
+    timeZone: "Asia/Dhaka",
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
 }
 
 type Shape = Pick<ListedEntry, "type" | "loanId" | "loanDirection">;
 
 /** A short name for what kind of entry this is. */
-export function entryLabel({ type, loanId, loanDirection }: Shape): string {
+export function entryLabel({ type, loanId, loanDirection }: Shape, t: Translate): string {
   switch (type) {
     case "expense":
-      return loanId ? "Loan interest or fee" : "Expense";
+      return t(loanId ? "entryKind.loanFee" : "entryKind.expense");
     case "income":
-      return loanId ? "Loan interest received" : "Income";
+      return t(loanId ? "entryKind.loanInterestReceived" : "entryKind.income");
     case "transfer":
-      return "Transfer";
+      return t("entryKind.transfer");
     case "adjustment":
-      return "Adjustment";
+      return t("entryKind.adjustment");
     case "loan_principal":
-      return loanDirection === "borrowed" ? "Loan received" : "Loan given";
+      return t(loanDirection === "borrowed" ? "entryKind.loanReceived" : "entryKind.loanGiven");
     case "loan_repayment":
-      return loanDirection === "borrowed" ? "Loan repayment" : "Loan repaid to you";
+      return t(
+        loanDirection === "borrowed" ? "entryKind.loanRepayment" : "entryKind.loanRepaidToYou",
+      );
   }
 }
 

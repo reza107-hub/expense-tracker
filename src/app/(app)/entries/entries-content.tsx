@@ -6,6 +6,7 @@ import { parseEntriesQuery } from "@/lib/entries/query-params";
 import { todayInDhaka } from "@/lib/period";
 import EntryForms from "./entry-forms";
 import EntryList from "./entry-list";
+import { getTranslator } from "@/i18n/server";
 
 export default async function EntriesContent({
   searchParams,
@@ -13,19 +14,20 @@ export default async function EntriesContent({
   searchParams: PageProps<"/entries">["searchParams"];
 }) {
   const query = parseEntriesQuery(await searchParams);
-  const [wallets, categories, list] = await Promise.all([
+  const [wallets, categories, list, { t }] = await Promise.all([
     listWallets(),
     listCategoriesForExpenseForm(),
     getEntryList(query),
+    getTranslator(),
   ]);
 
   return (
     <>
       {wallets.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-          You need a wallet before you can record an entry.{" "}
+          {t("entries.needWallet")}{" "}
           <Link href="/wallets" className="font-medium text-primary hover:underline">
-            Add a wallet
+            {t("wallets.add.title")}
           </Link>
         </p>
       ) : (

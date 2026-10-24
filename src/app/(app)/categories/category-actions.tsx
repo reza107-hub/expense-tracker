@@ -9,6 +9,7 @@ import {
   type CategoryActionState,
   type CategoryFormState,
 } from "@/lib/categories/validation";
+import { useT } from "@/i18n/client";
 
 const idleForm: CategoryFormState = { status: "idle" };
 const idleAction: CategoryActionState = { status: "idle" };
@@ -21,6 +22,7 @@ type Props = { categoryId: number; name: string };
 
 /** Rename and archive controls for one active category. */
 export default function CategoryActions({ categoryId, name }: Props) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [archiveState, archiveAction, archiving] = useActionState(
     archiveCategoryAction.bind(null, categoryId),
@@ -35,12 +37,12 @@ export default function CategoryActions({ categoryId, name }: Props) {
         <div className="flex flex-wrap gap-1">
           <button type="button" onClick={() => setEditing(true)} className={quietButton}>
             <Pencil className="size-4" aria-hidden="true" />
-            Rename
+            {t("categories.rename")}
           </button>
           <form action={archiveAction}>
             <button type="submit" disabled={archiving} className={quietButton}>
               <Archive className="size-4" aria-hidden="true" />
-              {archiving ? "Archiving" : "Archive"}
+              {archiving ? t("common.archiving") : t("common.archive")}
             </button>
           </form>
         </div>
@@ -56,6 +58,7 @@ export default function CategoryActions({ categoryId, name }: Props) {
 }
 
 function RenameForm({ categoryId, name, onClose }: Props & { onClose: () => void }) {
+  const t = useT();
   const [state, formAction, pending] = useActionState(
     renameCategoryAction.bind(null, categoryId),
     idleForm,
@@ -67,11 +70,11 @@ function RenameForm({ categoryId, name, onClose }: Props & { onClose: () => void
   }, [state, onClose]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="panel-enter flex flex-col gap-4">
       <InputField
         id={`category-${categoryId}-name`}
         name="name"
-        label="Name"
+        label={t("common.name")}
         required
         maxLength={CATEGORY_NAME_MAX}
         defaultValue={failed?.name ?? name}
@@ -84,11 +87,11 @@ function RenameForm({ categoryId, name, onClose }: Props & { onClose: () => void
           className={`${buttonClass} bg-primary text-primary-foreground hover:opacity-90`}
         >
           <Save className="size-4" aria-hidden="true" />
-          {pending ? "Saving" : "Save"}
+          {pending ? t("common.saving") : t("common.save")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>
           <X className="size-4" aria-hidden="true" />
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     </form>

@@ -5,10 +5,12 @@ import { Plus } from "lucide-react";
 import InputField from "@/components/forms/input-field";
 import { createWalletAction } from "@/actions/wallets";
 import { WALLET_NAME_MAX, WALLET_PRESETS, type WalletFormState } from "@/lib/wallets/validation";
+import { useT } from "@/i18n/client";
 
 const initialState: WalletFormState = { status: "idle" };
 
 export default function CreateWalletForm() {
+  const t = useT();
   const [state, formAction, pending] = useActionState(createWalletAction, initialState);
   const nameRef = useRef<HTMLInputElement>(null);
   const failed = state.status === "error" ? state : null;
@@ -24,11 +26,11 @@ export default function CreateWalletForm() {
       action={formAction}
       className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 text-card-foreground"
     >
-      <h2 className="text-base font-semibold tracking-tight">Add a wallet</h2>
+      <h2 className="text-base font-semibold tracking-tight">{t("wallets.add.title")}</h2>
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium" id="preset-label">
-          Quick pick
+          {t("wallets.add.quickPick")}
         </span>
         <div role="group" aria-labelledby="preset-label" className="flex flex-wrap gap-2">
           {WALLET_PRESETS.map((preset) => (
@@ -49,22 +51,22 @@ export default function CreateWalletForm() {
           ref={nameRef}
           id="wallet-name"
           name="name"
-          label="Name"
+          label={t("common.name")}
           required
           maxLength={WALLET_NAME_MAX}
           defaultValue={failed?.values.name}
           error={failed?.fieldErrors.name}
-          hint="Pick one above or type your own."
+          hint={t("wallets.add.nameHint")}
         />
         <InputField
           id="wallet-opening-balance"
           name="openingBalance"
-          label="Opening balance (taka)"
+          label={t("common.openingBalanceTaka")}
           inputMode="decimal"
           placeholder="0"
           defaultValue={failed?.values.openingBalance}
           error={failed?.fieldErrors.openingBalance}
-          hint="How much is in it now. Leave empty for zero."
+          hint={t("wallets.add.balanceHint")}
         />
       </div>
 
@@ -80,7 +82,7 @@ export default function CreateWalletForm() {
         className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
       >
         <Plus className="size-4" aria-hidden="true" />
-        {pending ? "Adding" : "Add wallet"}
+        {pending ? t("common.adding") : t("wallets.add.submit")}
       </button>
     </form>
   );

@@ -8,6 +8,7 @@ import type { ListedEntry } from "@/lib/entries/list";
 import type { EntryActionState } from "@/lib/entries/validation";
 import { formatTaka } from "@/lib/money";
 import EditEntryForm, { type CategoryChoice, type WalletChoice } from "./edit-entry-form";
+import { useT } from "@/i18n/client";
 
 const idle: EntryActionState = { status: "idle" };
 
@@ -47,6 +48,7 @@ function EntryRow({
   wallets,
   categories,
 }: Omit<Props, "entries"> & { entry: ListedEntry }) {
+  const t = useT();
   const [mode, setMode] = useState<"view" | "edit" | "delete">("view");
   const [deleteState, deleteAction, deleting] = useActionState(
     deleteEntryAction.bind(null, entry.id),
@@ -69,10 +71,10 @@ function EntryRow({
         <>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm font-medium">{entryLabel(entry)}</p>
+              <p className="text-sm font-medium">{entryLabel(entry, t)}</p>
               <p className="text-sm text-muted-foreground">
                 {entry.type === "transfer"
-                  ? `${entry.walletName} to ${entry.toWalletName}`
+                  ? t("entries.row.route", { from: entry.walletName, to: entry.toWalletName ?? "" })
                   : entry.walletName}
                 {entry.categoryName ? ` · ${entry.categoryName}` : ""}
                 {entry.loanCounterparty ? ` · ${entry.loanCounterparty}` : ""}
@@ -80,7 +82,7 @@ function EntryRow({
               {entry.note ? (
                 <p className="mt-1 text-sm break-words text-foreground">{entry.note}</p>
               ) : null}
-              <p className="mt-1 text-xs text-muted-foreground">{formatDate(entry.entryDate)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{formatDate(entry.entryDate, t)}</p>
             </div>
             <p className="shrink-0 text-sm font-semibold tabular-nums">
               <Amount entry={entry} />
@@ -88,10 +90,10 @@ function EntryRow({
           </div>
 
           {managedByLoan ? (
-            <p className="text-xs text-muted-foreground">Managed on the Loans page.</p>
+            <p className="text-xs text-muted-foreground">{t("entries.row.managedByLoan")}</p>
           ) : mode === "delete" ? (
-            <form action={deleteAction} className="flex flex-col gap-2">
-              <p className="text-sm text-foreground">Delete this entry? Balances will update.</p>
+            <form action={deleteAction} className="panel-enter flex flex-col gap-2">
+              <p className="text-sm text-foreground">{t("entries.row.deleteConfirm")}</p>
               <div className="flex gap-2">
                 <button
                   type="submit"
@@ -99,10 +101,10 @@ function EntryRow({
                   className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive px-3 text-sm font-medium text-destructive-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
                 >
                   <Trash2 className="size-4" aria-hidden="true" />
-                  {deleting ? "Deleting" : "Yes, delete"}
+                  {deleting ? t("common.deleting") : t("common.yesDelete")}
                 </button>
                 <button type="button" onClick={() => setMode("view")} className={quietButton}>
-                  Keep it
+                  {t("common.keepIt")}
                 </button>
               </div>
               {deleteState.status === "error" ? (
@@ -115,11 +117,11 @@ function EntryRow({
             <div className="flex gap-1">
               <button type="button" onClick={() => setMode("edit")} className={quietButton}>
                 <Pencil className="size-4" aria-hidden="true" />
-                Edit
+                {t("common.edit")}
               </button>
               <button type="button" onClick={() => setMode("delete")} className={quietButton}>
                 <Trash2 className="size-4" aria-hidden="true" />
-                Delete
+                {t("common.delete")}
               </button>
             </div>
           )}
