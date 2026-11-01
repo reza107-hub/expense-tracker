@@ -21,3 +21,4 @@ npm-debug.*
 
 # local assistant settings
 .claude/
+release/

@@ -8,14 +8,24 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0a0e12",
-    "plugins": ["expo-router", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 140,
+          "backgroundColor": "#0f3d3e"
+        }
+      ]
+    ],
     "experiments": { "typedRoutes": true },
     "android": {
       "package": "com.rezatracker.expense",
       "adaptiveIcon": {
-        "backgroundColor": "#0a0e12",
+        "backgroundColor": "#0f3d3e",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
