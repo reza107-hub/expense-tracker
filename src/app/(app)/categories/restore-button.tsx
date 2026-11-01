@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { useActionState } from "react";
 import { ArchiveRestore } from "lucide-react";
 import { restoreCategoryAction } from "@/actions/categories";
@@ -22,7 +24,7 @@ export default function RestoreButton({ categoryId }: { categoryId: number }) {
         disabled={pending}
         className="inline-flex h-9 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
       >
-        <ArchiveRestore className="size-4" aria-hidden="true" />
+        {pending ? <Spinner /> : <ArchiveRestore className="size-4" aria-hidden="true" />}
         {pending ? t("common.restoring") : t("common.restore")}
       </button>
       {state.status === "error" ? (

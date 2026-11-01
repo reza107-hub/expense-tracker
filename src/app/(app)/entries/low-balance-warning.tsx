@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { TriangleAlert } from "lucide-react";
 import { formatTaka } from "@/lib/money";
 import { CONFIRM_LOW_BALANCE_FIELD } from "@/lib/entries/validation";
@@ -39,8 +41,9 @@ export default function LowBalanceWarning({ walletName, balanceAfter, pending, o
           name={CONFIRM_LOW_BALANCE_FIELD}
           value="yes"
           disabled={pending}
-          className="inline-flex h-9 items-center justify-center rounded-md bg-warning px-3 text-sm font-medium text-warning-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
+          className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-warning px-3 text-sm font-medium text-warning-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
         >
+          {pending ? <Spinner /> : null}
           {pending ? t("common.saving") : t("entries.saveAnyway")}
         </button>
         <button

@@ -219,6 +219,11 @@ summary:active,
     animation: none;
   }
 
+  /* A still ring still tells people something is loading, so slow it instead of stopping it. */
+  .animate-spin {
+    animation-duration: 2.5s;
+  }
+
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {

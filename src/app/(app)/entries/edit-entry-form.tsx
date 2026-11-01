@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { useActionState, useEffect, useState } from "react";
 import { Save, X } from "lucide-react";
 import { updateEntryAction } from "@/actions/entries-modify";
@@ -144,7 +146,7 @@ export default function EditEntryForm({ entry, wallets, categories, onClose }: P
             disabled={pending}
             className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
           >
-            <Save className="size-4" aria-hidden="true" />
+            {pending ? <Spinner /> : <Save className="size-4" aria-hidden="true" />}
             {pending ? t("common.saving") : t("common.save")}
           </button>
           <button

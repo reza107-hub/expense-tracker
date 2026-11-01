@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { useActionState, useEffect, useState } from "react";
 import { Archive, Pencil, Save, X } from "lucide-react";
 import InputField from "@/components/forms/input-field";
@@ -115,7 +117,7 @@ function EditForm({
           disabled={pending}
           className={`${buttonClass} bg-primary text-primary-foreground hover:opacity-90`}
         >
-          <Save className="size-4" aria-hidden="true" />
+          {pending ? <Spinner /> : <Save className="size-4" aria-hidden="true" />}
           {pending ? t("common.saving") : t("common.save")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>

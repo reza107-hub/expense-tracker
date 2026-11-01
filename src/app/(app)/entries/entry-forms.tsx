@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { useActionState, useState } from "react";
 import {
   ArrowLeftRight,
@@ -232,7 +234,7 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
           disabled={pending}
           className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
         >
-          <Plus className="size-4" aria-hidden="true" />
+          {pending ? <Spinner /> : <Plus className="size-4" aria-hidden="true" />}
           {pending ? t("common.saving") : t(tab.submitKey)}
         </button>
       )}

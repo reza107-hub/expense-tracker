@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { useActionState } from "react";
 import { UserPlus } from "lucide-react";
 import TextField from "@/components/auth/text-field";
@@ -58,7 +60,7 @@ export default function RegisterForm() {
         disabled={pending}
         className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
       >
-        <UserPlus className="size-4" aria-hidden="true" />
+        {pending ? <Spinner /> : <UserPlus className="size-4" aria-hidden="true" />}
         {pending ? t("auth.register.pending") : t("auth.register.submit")}
       </button>
     </form>

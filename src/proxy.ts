@@ -4,6 +4,11 @@ import { NextResponse, type NextRequest } from "next/server";
 const SIGN_IN_PATH = "/sign-in";
 /** Pages a visitor without a session may open. */
 const PUBLIC_PATHS = new Set([SIGN_IN_PATH, "/register"]);
+/**
+ * The mobile app's JSON API. It sends a bearer token instead of a cookie and answers
+ * 401 itself, so a redirect to the sign-in page would only confuse it.
+ */
+const API_PREFIX = "/api/v1/";
 
 /**
  * Sends visitors who have no session cookie to the sign-in page. This is a convenience
@@ -15,6 +20,7 @@ const PUBLIC_PATHS = new Set([SIGN_IN_PATH, "/register"]);
  * between sign-in and the dashboard forever. Those pages check the real session instead.
  */
 export function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith(API_PREFIX)) return NextResponse.next();
   if (PUBLIC_PATHS.has(request.nextUrl.pathname)) return NextResponse.next();
   if (getSessionCookie(request)) return NextResponse.next();
   return NextResponse.redirect(new URL(SIGN_IN_PATH, request.url));

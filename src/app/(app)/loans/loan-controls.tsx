@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { useActionState, useEffect, useState } from "react";
 import { HandCoins, Pencil, Save, Trash2, X } from "lucide-react";
 import {
@@ -165,7 +167,7 @@ function RepayForm({
       ) : null}
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className={primaryButton}>
-          <Save className="size-4" aria-hidden="true" />
+          {pending ? <Spinner /> : <Save className="size-4" aria-hidden="true" />}
           {pending ? t("common.saving") : t("loans.repayForm.save")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>
@@ -227,7 +229,7 @@ function EditForm({ loan, onClose }: { loan: Props["loan"]; onClose: () => void 
       ) : null}
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className={primaryButton}>
-          <Save className="size-4" aria-hidden="true" />
+          {pending ? <Spinner /> : <Save className="size-4" aria-hidden="true" />}
           {pending ? t("common.saving") : t("common.save")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>
@@ -257,7 +259,7 @@ function DeleteConfirm({ loan, onClose }: { loan: Props["loan"]; onClose: () => 
           disabled={pending}
           className={`${buttonClass} bg-destructive text-destructive-foreground hover:opacity-90`}
         >
-          <Trash2 className="size-4" aria-hidden="true" />
+          {pending ? <Spinner /> : <Trash2 className="size-4" aria-hidden="true" />}
           {pending ? t("common.deleting") : t("common.yesDelete")}
         </button>
         <button type="button" onClick={onClose} className={quietButton}>

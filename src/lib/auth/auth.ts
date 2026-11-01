@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
+import { bearer } from "better-auth/plugins";
 import { account, session, user, verification } from "@/db/schema";
 import { seedUserDefaults } from "@/db/seed";
 import type { AnyDb } from "@/db/types";
@@ -133,7 +134,9 @@ export function createAuth({
         await clearAttempts(db, normaliseEmail(ctx.context.newSession.user.email));
       }),
     },
-    plugins: withNextCookies ? [nextCookies()] : [],
+    // bearer lets the mobile app send its session as `Authorization: Bearer <token>`
+    // (see src/lib/api). Browsers keep using the cookie.
+    plugins: withNextCookies ? [bearer(), nextCookies()] : [bearer()],
   });
 }
 

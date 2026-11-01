@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { useActionState } from "react";
 import { RefreshCw, Sparkles } from "lucide-react";
 import { refreshAdviceAction, type AdviceActionState } from "@/actions/advice";
@@ -28,7 +30,7 @@ export default function AdviceButton({ month, hasSaved, remaining, dailyLimit }:
         disabled={pending}
         className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
       >
-        <Icon className="size-4" aria-hidden="true" />
+        {pending ? <Spinner /> : <Icon className="size-4" aria-hidden="true" />}
         {pending ? t("advice.thinking") : hasSaved ? t("advice.refresh") : t("advice.get")}
       </button>
       <p className="text-xs text-muted-foreground">

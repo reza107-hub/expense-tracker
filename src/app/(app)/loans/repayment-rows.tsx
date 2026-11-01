@@ -1,5 +1,7 @@
 "use client";
 
+import Spinner from "@/components/spinner";
+
 import { useActionState, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { deleteRepaymentAction } from "@/actions/loans";
@@ -83,6 +85,7 @@ function RepaymentRow({
               disabled={pending}
               className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-destructive px-3 text-sm font-medium text-destructive-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
             >
+              {pending ? <Spinner /> : null}
               {pending ? t("common.deleting") : t("common.yesDelete")}
             </button>
             <button type="button" onClick={() => setConfirming(false)} className={quietButton}>
