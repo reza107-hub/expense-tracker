@@ -208,6 +208,8 @@ export const en = {
   "entries.field.addTo": "Add to",
   "entries.field.wallet": "Wallet",
   "entries.field.category": "Category",
+  "entries.field.chargeOptional": "Charge (taka, optional)",
+  "entries.field.chargeHint": "Taken from the same wallet, for example a cash-out or send-money charge. Saved as a separate expense.",
   "entries.field.chooseCategory": "Choose a category",
   "entries.field.newBalance": "New balance (taka)",
   "entries.field.newBalanceHint": "What the wallet holds now, for example after a crypto price change.",

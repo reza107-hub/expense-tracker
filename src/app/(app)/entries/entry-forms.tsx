@@ -177,6 +177,18 @@ function EntryForm({ type, wallets, categories, today }: Props & { type: EntryTy
         />
       )}
 
+      {type === "expense" || type === "transfer" ? (
+        <InputField
+          id="entry-charge"
+          name="charge"
+          label={t("entries.field.chargeOptional")}
+          inputMode="decimal"
+          defaultValue={values?.charge}
+          error={errors.charge}
+          hint={t("entries.field.chargeHint")}
+        />
+      ) : null}
+
       {type === "expense" ? (
         <SelectField
           id="entry-category"

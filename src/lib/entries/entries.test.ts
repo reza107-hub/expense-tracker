@@ -6,7 +6,7 @@ import { createTestDb, resetTestDb, type TestDb } from "@/test/db";
 import { insertUser } from "@/test/users";
 import { archiveCategory } from "@/lib/categories/mutations";
 import { getWalletWithBalance } from "@/lib/wallets/queries";
-import { createEntry } from "./create";
+import { CHARGES_CATEGORY, createEntry } from "./create";
 import { validateEntry, type EntryType } from "./validation";
 
 const taka = (n: number) => n * 100;
@@ -37,10 +37,23 @@ describe("validateEntry", () => {
         walletId: 1,
         categoryId: 2,
         amount: taka(450),
+        charge: 0,
         entryDate: "2026-10-10",
         note: "lunch",
       },
     });
+  });
+
+  it("reads an optional charge: blank is none, a number is poisha, zero or junk is refused", () => {
+    const withCharge = (charge: string) => validateEntry("expense", form({ ...expense, charge }), NOW);
+    const ok = (charge: string) => {
+      const c = withCharge(charge);
+      return c.ok && c.value.type === "expense" ? c.value.charge : undefined;
+    };
+    expect(ok("")).toBe(0);
+    expect(ok("13.95")).toBe(1395);
+    expect(withCharge("0").ok).toBe(false);
+    expect(withCharge("abc").ok).toBe(false);
   });
 
   it("accepts today in Dhaka even when it is still yesterday in UTC", () => {
@@ -195,6 +208,45 @@ describe("createEntry", () => {
     expect(result.ok).toBe(true);
     expect(await balance("a", bkash)).toBe(taka(2750));
     expect(await balance("a", cash)).toBe(taka(1000));
+  });
+
+  it("an expense charge is a second expense row that also lowers the wallet", async () => {
+    const bkash = await addWallet("a", "bKash", 3200);
+    const result = await createEntry(db, "a", {
+      type: "expense",
+      walletId: bkash,
+      categoryId: await categoryId("a", "Food"),
+      amount: taka(450),
+      charge: 1395,
+      entryDate: date,
+      note: null,
+    });
+    expect(result.ok).toBe(true);
+    expect(await balance("a", bkash)).toBe(taka(2750) - 1395);
+    const rows = await db.select().from(entries).orderBy(entries.id);
+    expect(rows.map((r) => r.amount)).toEqual([taka(450), 1395]);
+    expect(rows[1].type).toBe("expense");
+    expect(rows[1].categoryId).toBe(await categoryId("a", CHARGES_CATEGORY));
+  });
+
+  it("a transfer charge comes out of the source wallet only, and the charges category is reused", async () => {
+    const bkash = await addWallet("a", "bKash", 5000);
+    const cash = await addWallet("a", "Cash", 0);
+    for (let i = 0; i < 2; i++) {
+      await createEntry(db, "a", { type: "transfer", walletId: bkash, toWalletId: cash, amount: taka(1000), charge: 1850, entryDate: date, note: null });
+    }
+    expect(await balance("a", cash)).toBe(taka(2000));
+    expect(await balance("a", bkash)).toBe(taka(3000) - 2 * 1850);
+    const created = await db.select().from(categories).where(and(eq(categories.userId, "a"), eq(categories.name, CHARGES_CATEGORY)));
+    expect(created).toHaveLength(1);
+  });
+
+  it("the low-balance check counts the charge, and a refused save writes nothing", async () => {
+    const bkash = await addWallet("a", "bKash", 1000);
+    const cash = await addWallet("a", "Cash", 0);
+    const result = await createEntry(db, "a", { type: "transfer", walletId: bkash, toWalletId: cash, amount: taka(1000), charge: 1850, entryDate: date, note: null });
+    expect(result).toEqual({ ok: false, lowBalance: { walletName: "bKash", balanceAfter: -1850 } });
+    expect(await entryCount()).toBe(0);
   });
 
   it("income raises the balance", async () => {

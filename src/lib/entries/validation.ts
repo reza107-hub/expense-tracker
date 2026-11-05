@@ -11,6 +11,7 @@ export type EntryField =
   | "toWalletId"
   | "categoryId"
   | "amount"
+  | "charge"
   | "newBalance"
   | "entryDate"
   | "note";
@@ -27,6 +28,8 @@ export type NewEntry =
       walletId: number;
       categoryId: number;
       amount: number;
+      /** Optional extra cost (a cash-out or send-money charge), in poisha. Zero when none. */
+      charge?: number;
       entryDate: string;
       note: string | null;
     }
@@ -36,6 +39,8 @@ export type NewEntry =
       walletId: number;
       toWalletId: number;
       amount: number;
+      /** Optional extra cost taken from the source wallet, in poisha. Zero when none. */
+      charge?: number;
       entryDate: string;
       note: string | null;
     }
@@ -90,6 +95,21 @@ export const amountField = z
   })
   .transform((text) => parseTaka(text) as number);
 
+/** A charge is optional. Blank means none (0). When given it must be above zero. */
+const chargeField = z
+  .string()
+  .superRefine((text, ctx) => {
+    if (text === "") return;
+    const poisha = parseTaka(text);
+    if (poisha === null || poisha <= 0) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Enter a charge above zero, with at most two decimal places, or leave it blank.",
+      });
+    }
+  })
+  .transform((text) => (text === "" ? 0 : (parseTaka(text) as number)));
+
 /** A balance may be zero or below, so only the shape of the number is checked. */
 const balanceField = z
   .string()
@@ -130,6 +150,7 @@ function schemaFor(type: EntryType, now: Date) {
         walletId: wallet,
         categoryId: idField("Choose a category."),
         amount: amountField,
+        charge: chargeField,
         ...common,
       });
     case "income":
@@ -140,6 +161,7 @@ function schemaFor(type: EntryType, now: Date) {
           walletId: idField("Choose the wallet to take money from."),
           toWalletId: idField("Choose the wallet to move money to."),
           amount: amountField,
+          charge: chargeField,
           ...common,
         })
         .refine((v) => v.walletId !== v.toWalletId, {
@@ -159,6 +181,7 @@ const FIELDS: EntryField[] = [
   "toWalletId",
   "categoryId",
   "amount",
+  "charge",
   "newBalance",
   "entryDate",
   "note",

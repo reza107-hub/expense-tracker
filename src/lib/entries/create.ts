@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { categories, entries, wallets } from "@/db/schema";
 import type { AnyDb } from "@/db/types";
 import { formatTaka } from "@/lib/money";
@@ -15,6 +15,9 @@ export type CreateEntryOptions = {
   /** The user has seen the low-balance warning and still wants to save. */
   confirmLowBalance?: boolean;
 };
+
+/** Charges are saved as expenses in this category. It is created for the user on first use. */
+export const CHARGES_CATEGORY = "Transaction charges";
 
 const NOT_YOURS_WALLET = "Choose one of your wallets.";
 
@@ -45,6 +48,16 @@ async function isOwnSelectableCategory(
       ),
     );
   return rows.length > 0;
+}
+
+/** The id of the user's charges category, creating it the first time a charge is saved. */
+async function chargesCategoryId(db: AnyDb, userId: string): Promise<number> {
+  const where = and(eq(categories.userId, userId), sql`lower(${categories.name}) = ${CHARGES_CATEGORY.toLowerCase()}`);
+  const [existing] = await db.select({ id: categories.id }).from(categories).where(where);
+  if (existing) return existing.id;
+  await db.insert(categories).values({ userId, name: CHARGES_CATEGORY }).onConflictDoNothing();
+  const [created] = await db.select({ id: categories.id }).from(categories).where(where);
+  return created.id;
 }
 
 /**
@@ -79,6 +92,33 @@ export async function findReferenceErrors(
 }
 
 /**
+ * Saves the entry row and, when there is a charge, a second expense row on the same
+ * wallet and date, in one transaction. The charge lowers the wallet like any expense.
+ */
+async function insertWithCharge(
+  db: AnyDb,
+  userId: string,
+  values: typeof entries.$inferInsert,
+  charge: number,
+): Promise<{ id: number }> {
+  return db.transaction(async (tx) => {
+    const [row] = await tx.insert(entries).values(values).returning({ id: entries.id });
+    if (charge > 0) {
+      await tx.insert(entries).values({
+        userId,
+        type: "expense",
+        walletId: values.walletId,
+        categoryId: await chargesCategoryId(tx, userId),
+        amount: charge,
+        entryDate: values.entryDate,
+        note: values.note ? `Charge: ${values.note}` : "Charge",
+      });
+    }
+    return row;
+  });
+}
+
+/**
  * Saves one expense, income, transfer or balance adjustment for the user.
  *
  * An expense or transfer that would take its source wallet below zero is not saved
@@ -104,7 +144,7 @@ export async function createEntry(
 
   if (!confirmLowBalance && (entry.type === "expense" || entry.type === "transfer")) {
     const source = await getWalletWithBalance(db, userId, entry.walletId);
-    const balanceAfter = (source?.balance ?? 0) - entry.amount;
+    const balanceAfter = (source?.balance ?? 0) - entry.amount - (entry.charge ?? 0);
     if (source && balanceAfter < 0) {
       return { ok: false, lowBalance: { walletName: source.name, balanceAfter } };
     }
@@ -115,22 +155,26 @@ export async function createEntry(
   switch (entry.type) {
     case "expense":
     case "income": {
-      const [row] = await db
-        .insert(entries)
-        .values({
+      const row = await insertWithCharge(
+        db,
+        userId,
+        {
           ...base,
           type: entry.type,
           amount: entry.amount,
           categoryId: entry.type === "expense" ? entry.categoryId : null,
-        })
-        .returning({ id: entries.id });
+        },
+        entry.type === "expense" ? (entry.charge ?? 0) : 0,
+      );
       return { ok: true, id: row.id };
     }
     case "transfer": {
-      const [row] = await db
-        .insert(entries)
-        .values({ ...base, type: "transfer", toWalletId: entry.toWalletId, amount: entry.amount })
-        .returning({ id: entries.id });
+      const row = await insertWithCharge(
+        db,
+        userId,
+        { ...base, type: "transfer", toWalletId: entry.toWalletId, amount: entry.amount },
+        entry.charge ?? 0,
+      );
       return { ok: true, id: row.id };
     }
     case "adjustment": {
