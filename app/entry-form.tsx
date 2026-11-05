@@ -36,6 +36,7 @@ export default function EntryFormScreen() {
   const [toWalletId, setToWalletId] = useState<number | null>(existing?.toWalletId ?? null);
   const [categoryId, setCategoryId] = useState<number | null>(existing?.categoryId ?? null);
   const [amount, setAmount] = useState(existing ? formatTaka(existing.amount).replace(/,/g, "") : "");
+  const [charge, setCharge] = useState("");
   const [newBalance, setNewBalance] = useState("");
   const [entryDate, setEntryDate] = useState(existing?.entryDate ?? todayInDhaka());
   const [note, setNote] = useState(existing?.note ?? "");
@@ -48,11 +49,11 @@ export default function EntryFormScreen() {
     const common = { walletId, entryDate, note, ...(confirmLowBalance ? { confirmLowBalance: true } : {}) };
     switch (kind) {
       case "expense":
-        return { type: kind, ...common, categoryId, amount };
+        return { type: kind, ...common, categoryId, amount, charge };
       case "income":
         return { type: kind, ...common, amount };
       case "transfer":
-        return { type: kind, ...common, toWalletId, amount };
+        return { type: kind, ...common, toWalletId, amount, charge };
       case "adjustment":
         return editing ? { type: kind, ...common, amount } : { type: kind, ...common, newBalance };
     }
@@ -144,6 +145,16 @@ export default function EntryFormScreen() {
                 error={fieldErrors.amount}
               />
             )}
+            {!editing && (kind === "expense" || kind === "transfer") ? (
+              <TextField
+                label={t("entries.field.chargeOptional")}
+                value={charge}
+                onChangeText={setCharge}
+                keyboardType="decimal-pad"
+                hint={t("entries.field.chargeHint")}
+                error={fieldErrors.charge}
+              />
+            ) : null}
             <TextField label={t("common.date")} value={entryDate} onChangeText={setEntryDate} hint={t("common.dateHint")} error={fieldErrors.entryDate} autoCapitalize="none" maxLength={10} />
             <TextField label={t("common.noteOptional")} value={note} onChangeText={setNote} error={fieldErrors.note} maxLength={200} autoCapitalize="sentences" />
 

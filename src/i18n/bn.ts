@@ -210,6 +210,8 @@ export const bn = {
   "entries.field.addTo": "যে ওয়ালেটে যোগ হবে",
   "entries.field.wallet": "ওয়ালেট",
   "entries.field.category": "ক্যাটাগরি",
+  "entries.field.chargeOptional": "চার্জ (টাকা, ঐচ্ছিক)",
+  "entries.field.chargeHint": "একই ওয়ালেট থেকে কাটা হবে, যেমন ক্যাশ আউট বা সেন্ড মানির চার্জ। আলাদা খরচ হিসেবে সেভ হবে।",
   "entries.field.chooseCategory": "ক্যাটাগরি বেছে নিন",
   "entries.field.newBalance": "নতুন ব্যালেন্স (টাকা)",
   "entries.field.newBalanceHint": "ওয়ালেটে এখন কত আছে, যেমন ক্রিপ্টোর দাম বদলের পর।",

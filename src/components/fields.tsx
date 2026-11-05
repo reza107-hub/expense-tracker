@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Switch, Text, TextInput, View, type KeyboardTypeOptions } from "react-native";
+import { Check, ChevronDown } from "lucide-react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View, type KeyboardTypeOptions } from "react-native";
 import { colors, radius } from "@/theme/colors";
 
 type FieldProps = {
@@ -53,7 +54,7 @@ export function TextField({ label, error, hint, multiline, editable = true, ...i
 
 type Option<V> = { value: V; label: string };
 
-/** Pick one from a short list, shown as tappable chips. `allowNone` lets the person clear it. */
+/** Pick one from a list, shown as a dropdown field that opens a list of choices. */
 export function ChoiceField<V extends string | number>({
   label,
   options,
@@ -69,25 +70,50 @@ export function ChoiceField<V extends string | number>({
   error?: string;
   hint?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((option) => option.value === value);
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.chips} accessibilityRole="radiogroup">
-        {options.map((option) => {
-          const selected = option.value === value;
-          return (
-            <Pressable
-              key={String(option.value)}
-              accessibilityRole="radio"
-              accessibilityState={{ selected }}
-              onPress={() => onChange(option.value)}
-              style={[styles.chip, selected && styles.chipSelected]}
-            >
-              <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{option.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <Pressable
+        accessibilityRole="combobox"
+        accessibilityLabel={label}
+        accessibilityValue={{ text: selected?.label ?? "" }}
+        onPress={() => setOpen(true)}
+        style={[styles.input, styles.dropdown, !!error && { borderColor: colors.destructive }]}
+      >
+        <Text style={[styles.dropdownText, !selected && { color: colors.mutedForeground }]} numberOfLines={1}>
+          {selected?.label ?? "—"}
+        </Text>
+        <ChevronDown size={18} color={colors.mutedForeground} />
+      </Pressable>
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+          <View style={styles.sheet}>
+            <Text style={styles.sheetTitle}>{label}</Text>
+            <ScrollView>
+              {options.map((option) => {
+                const isSelected = option.value === value;
+                return (
+                  <Pressable
+                    key={String(option.value)}
+                    accessibilityRole="menuitem"
+                    accessibilityState={{ selected: isSelected }}
+                    onPress={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                    }}
+                    style={[styles.option, isSelected && styles.optionSelected]}
+                  >
+                    <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{option.label}</Text>
+                    {isSelected ? <Check size={18} color={colors.accentForeground} /> : null}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
       {error ? (
         <Text accessibilityRole="alert" style={styles.error}>
           {error}
@@ -131,19 +157,22 @@ const styles = StyleSheet.create({
   multiline: { minHeight: 80, textAlignVertical: "top" },
   error: { color: colors.destructive, fontSize: 13 },
   hint: { color: colors.mutedForeground, fontSize: 12, lineHeight: 17 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    paddingHorizontal: 12,
-    minHeight: 38,
-    justifyContent: "center",
-    borderRadius: 999,
+  dropdown: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  dropdownText: { flex: 1, color: colors.foreground, fontSize: 16 },
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: 24 },
+  sheet: {
+    maxHeight: "70%",
+    backgroundColor: colors.card,
+    borderRadius: radius,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.card,
+    paddingVertical: 8,
   },
-  chipSelected: { backgroundColor: colors.accent, borderColor: colors.primary },
-  chipText: { color: colors.mutedForeground, fontSize: 14 },
-  chipTextSelected: { color: colors.accentForeground, fontWeight: "600" },
+  sheetTitle: { color: colors.mutedForeground, fontSize: 13, paddingHorizontal: 16, paddingVertical: 8 },
+  option: { minHeight: 46, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
+  optionSelected: { backgroundColor: colors.accent },
+  optionText: { color: colors.foreground, fontSize: 16, flex: 1 },
+  optionTextSelected: { color: colors.accentForeground, fontWeight: "600" },
   switchRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   switchLabel: { flex: 1 },
 });
